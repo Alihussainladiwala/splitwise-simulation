@@ -1,0 +1,29 @@
+.account-img-height {
+  margin-top: 5px;
+  height: 40vh;
+  margin-left: 110px;
+}
+
+.account-row-height {
+  height: 40vh;
+  margin-top: 70px;
+}
+
+.account-col-height {
+  height: 80vh;
+  
+}
+
+.account-form {
+  margin-top: 20px;
+  margin-right: 100px !important;
+}
+
+.choose-buttons {
+  margin-left: 50px;
+  margin-top: 10px;
+}
+
+.user-data{
+  margin-top: -10px;
+}

@@ -1,0 +1,21 @@
+.recent-activity-heading {
+  padding: 0px !important;
+}
+
+.list-recent-activity {
+  width: 87vw;
+  margin-left: 15px;
+  height: 30vh;
+}
+
+.scroll {
+  overflow: overlay;
+  height: 70vh;
+  margin-right: 5px;
+  width: 87.5vw;
+  overflow-x: hidden;
+}
+
+.groupLayout {
+  overflow-x: hidden;
+}

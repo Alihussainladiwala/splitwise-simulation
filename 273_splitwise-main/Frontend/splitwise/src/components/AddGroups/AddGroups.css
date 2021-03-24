@@ -1,0 +1,15 @@
+.group-layout {
+  height: 70vh;
+}
+
+.group-form {
+  margin-top: 20vh;
+}
+
+.Select__menu-list {
+  max-height: 30px !important;
+}
+
+.alert {
+  margin-top: 10px;
+}

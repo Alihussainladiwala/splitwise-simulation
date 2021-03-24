@@ -1,0 +1,77 @@
+.div-dashboard {
+  height: 70vh;
+}
+
+.button-dashboard-groups {
+  background-color: #ccc;
+  border: 0px;
+  color: #999;
+}
+
+.button-dashboard-recent-activity {
+  color: #ff652f;
+  font-weight: 800;
+}
+
+.button-dashboard-dashboard {
+  color: #5bc5a7;
+  font-weight: 800;
+}
+
+.dashboard-layout-row{
+  width: 100vw;
+  height: 90vh;
+}
+
+.links-dashboard-groups {
+  color: #999;
+}
+
+.total-balance {
+  margin-left: 15px;
+}
+
+.tiles {
+  padding: 0px !important;
+  border: solid;
+  border-bottom: 0px;
+  border-color: gray;
+}
+
+.total-balance {
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+}
+
+.you-owe {
+  padding: 0px !important;
+}
+
+.you-are-owed {
+  padding-left: 0px !important;
+}
+
+.nav-dashboard {
+  background-color: #f8f9fa !important;
+  padding: 0px !important;
+}
+
+.owe-owed {
+  height: 50vh;
+  padding: 0px !important;
+}
+
+.owe-column {
+  border-right: solid;
+  border-color: gray;
+  padding-right: 0px !important;
+}
+
+.owed-column {
+  padding-left: 0px !important;
+}
+
+.you-owe-title {
+  height: 5vh;
+  margin-left: 140px;
+}

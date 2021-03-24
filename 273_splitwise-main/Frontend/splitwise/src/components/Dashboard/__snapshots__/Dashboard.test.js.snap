@@ -1,0 +1,181 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders 1`] = `
+<DocumentFragment>
+  <div
+    class="div-dashboard"
+  >
+    <div
+      class="dashboard-layout-row row"
+    >
+      <div
+        class="nav-dashboard"
+      >
+        <div
+          class="nav-dashboard col"
+        >
+          <div
+            class="flex-column nav"
+          >
+            <a
+              class="button-dashboard-dashboard nav-link"
+              href="#"
+              role="button"
+            >
+              Dashboard
+            </a>
+            <a
+              class="button-dashboard-recent-activity nav-link"
+              href="#"
+              role="button"
+            >
+              Recent Activity
+            </a>
+            <a
+              class="button-dashboard-groups nav-link"
+              href="#"
+              role="button"
+              variant="secondary"
+            >
+              Groups +
+            </a>
+            <div
+              class="groups-list"
+            >
+              <input
+                class="input-search"
+                placeholder=". . . search"
+                type="text"
+              />
+            </div>
+            <a
+              aria-disabled="true"
+              class="nav-link disabled"
+              data-rb-event-key="disabled"
+              href="#"
+              role="button"
+              tabindex="-1"
+            >
+              Friends
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="tiles col-8"
+      >
+        <div
+          class="tiles card bg-light"
+        >
+          <div
+            class="card-header"
+          >
+            <div
+              class="row"
+            >
+              <div
+                class="col-10"
+                data-testid="Dashboard"
+              >
+                Dashboard
+              </div>
+              <div
+                class="col"
+              >
+                <div
+                  class="dropdown btn-group"
+                  role="group"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    class="dropdown-toggle btn btn-primary"
+                    id="bg-nested-dropdown"
+                    type="button"
+                  >
+                    Settle up
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="row"
+        >
+          <div
+            class="total-balance col"
+          >
+            <div
+              class="card bg-light"
+            >
+              <div
+                class="card-header"
+              >
+                total Balance 0
+              </div>
+            </div>
+          </div>
+          <div
+            class="you-owe col"
+          >
+            <div
+              class="card bg-light"
+            >
+              <div
+                class="card-header"
+              >
+                You owe 0
+              </div>
+            </div>
+          </div>
+          <div
+            class="you-are-owed col"
+          >
+            <div
+              class="card bg-light"
+            >
+              <div
+                class="card-header"
+              >
+                You are owed 0
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="owe-owed row"
+        >
+          <div
+            class="owe-column col"
+          >
+            <div
+              class="you-owe-title"
+            >
+              You Owe
+            </div>
+            <div
+              class="list-group"
+            />
+          </div>
+          <div
+            class="owed-column col"
+          >
+            <div
+              class="you-owe-title"
+            >
+              You Owed 
+            </div>
+            <div
+              class="list-group"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="nav-dashboard col"
+      />
+    </div>
+  </div>
+</DocumentFragment>
+`;
