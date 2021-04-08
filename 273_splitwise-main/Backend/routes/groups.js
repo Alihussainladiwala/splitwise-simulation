@@ -23,7 +23,7 @@ router.post(
         userModel.User.findOne({ email: user }).then((result) => {
           const newGroup = group({ groupName, createdBy: result._id });
 
-          newGroup.members = users;
+          newGroup.invitedMembers = users;
           group.findOne({ groupName: groupName }).then((group) => {
             if (group) {
               res.status(409).json({ message: "group already exists" });

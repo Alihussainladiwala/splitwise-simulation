@@ -21,6 +21,7 @@ const routerGp = require("./routes/groups.js");
 const routerInvites = require("./routes/invites.js");
 const routerBills = require("./routes/bills.js");
 const routerAmounts = require("./routes/amount.js");
+const routerActivity = require("./routes/activity.js");
 
 const User = require("./modules/user");
 
@@ -52,6 +53,8 @@ app.use(routerInvites);
 app.use(routerBills);
 
 app.use(routerAmounts);
+
+app.use(routerActivity);
 
 app.post("/signUp", (req, res) => {
   const { name, email, password } = req.body;

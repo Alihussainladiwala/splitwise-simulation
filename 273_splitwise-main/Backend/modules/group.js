@@ -16,7 +16,8 @@ const GroupSchema = new mongoose.Schema({
   },
   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   timestamp: { type: Date, default: Date.now },
-  members: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
+  invitedMembers: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
+  members: { type: Array, ref: "User", default: [] },
 });
 
 const Group = mongoose.model("Group", GroupSchema);

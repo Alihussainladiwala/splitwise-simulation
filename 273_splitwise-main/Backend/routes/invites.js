@@ -3,6 +3,7 @@ const app = express();
 const router = express.Router();
 const passport = require("passport");
 const userModel = require("../modules/user");
+const inviteModel = require("../modules/invite");
 const group = require("../modules/group");
 
 //Passport midlleware
@@ -27,6 +28,36 @@ router.get(
   }
 );
 
+const updateGroup = (groupObj, email) => {
+  return new Promise((resolve, reject) => {
+    userModel.User.findOne({ email }).then((user) => {
+      console.log(user);
+      group
+        .findOneAndUpdate(
+          { _id: groupObj._id },
+          { $pull: { invitedMembers: user._id } }
+        )
+        .then((result) => {
+          console.log(user._id);
+          const userInvite = new inviteModel.UserInvite({ userId: user._id });
+          group
+            .findOneAndUpdate(
+              { _id: groupObj._id },
+              { $push: { members: userInvite } }
+            )
+            .then((result) => {
+              if (result) {
+                /// need to add better error handling
+                resolve(true);
+              } else {
+                resolve(false);
+              }
+            });
+        });
+    });
+  });
+};
+
 router.post(
   "/inviteStatus",
   passport.authenticate("jwt", { session: false }),
@@ -34,12 +65,20 @@ router.post(
     const { status, groupName, email } = req.body;
 
     // get objectid for group
-    group.findOne({ groupName }).then((group) => {
+    group.findOne({ groupName }).then(async (group) => {
       console.log(group._id);
+      let groupInviteUpdate = await updateGroup(group, email);
+
+      if (!groupInviteUpdate) {
+        return res
+          .status(400)
+          .json({ message: "group data could not be updated" });
+      }
       userModel.User.findOneAndUpdate(
         { email },
         { $pull: { groupInvitedTo: group._id } }
       ).then((result) => {
+        console.log(result);
         const invite = new userModel.Invite({ groupId: group._id });
         userModel.User.findOneAndUpdate(
           { email },
