@@ -6,6 +6,7 @@ const group = require("../modules/group");
 const userModel = require("../modules/user");
 //Passport midlleware
 app.use(passport.initialize());
+const mongoose = require("mongoose");
 
 //passport config
 require("../config/passport")(passport);
@@ -69,6 +70,134 @@ router.post(
           });
         });
       });
+  }
+);
+
+router.get(
+  "/getGroups/:email",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    console.log(req.params.email);
+
+    userModel.User.find({ email: req.params.email }).then(async (result) => {
+      console.log(result);
+      console.log(result[0].group);
+      let displayResult = [];
+      for (let i = 0; i < result[0].group.length; i++) {
+        console.log(result[0].group[i].groupId);
+        let groupData = await group.findById(result[0].group[i].groupId);
+        let groupObj = {
+          groupName: groupData.groupName,
+          photo: groupData.groupPhoto,
+        };
+
+        displayResult.push(groupObj);
+      }
+      res.status(200).json(displayResult);
+    });
+  }
+);
+
+router.get(
+  "/users",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    let members = await userModel.User.find({}, { name: 1, email: 1 });
+    console.log(members);
+
+    res.status(200).json(members);
+  }
+);
+
+router.get(
+  "/accountInfo/:email",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    let members = await userModel.User.find({ email: req.params.email });
+    console.log(members);
+
+    res.status(200).json(members);
+  }
+);
+
+router.post(
+  "/updateAccountInfo",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const { email, name, phoneNo, currency } = req.body;
+    let update = await userModel.User.update(
+      { email: email },
+      { email, name, phoneNo, currency }
+    );
+    console.log(update);
+    if (update) {
+      res.status(200).json({ message: "successfully updated" });
+    } else {
+      res.status(400).json({ message: "failed to update account info" });
+    }
+  }
+);
+
+router.get(
+  "/userId/:email",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    userModel.User.find({ email: req.params.email }).then((result) => {
+      if (result) {
+        res.status(200).json({ id: result[0]._id });
+      }
+    });
+  }
+);
+
+getGroupIdFromName = (groupName) => {
+  return new Promise((resolve, reject) => {
+    groupModel.find({ groupName }).then((result) => {
+      if (result) {
+        console.log(result[0]._id);
+        resolve(result[0]._id);
+      }
+    });
+  });
+};
+
+getUserIdFromEmail = (email) => {
+  return new Promise((resolve, reject) => {
+    userModel.User.find({ email }).then((result) => {
+      if (result) {
+        console.log(result[0]._id);
+        resolve(result[0]._id);
+      }
+    });
+  });
+};
+
+router.post(
+  "/exitGroup/:email/:group",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    userId = await getUserIdFromEmail(req.params.email);
+    groupId = await getGroupIdFromName(req.params.group);
+
+    userModel.User.update(
+      { _id: userId },
+      { $pull: { group: { groupId: mongoose.Types.ObjectId(groupId) } } }
+    ).then((result) => {
+      if (result) {
+        group
+          .update(
+            { _id: groupId },
+            { $pull: { members: { userId: mongoose.Types.ObjectId(userId) } } }
+          )
+          .then((result) => {
+            res.status(200).json({ message: "successfully exited group" });
+          });
+      }
+    });
+
+    console.log(userId, groupId);
+
+    // userModel.User.update()
   }
 );
 

@@ -8,15 +8,21 @@ const queryString = require('query-string');
 import Axios from 'axios';
 import 'numeral/locales/en-gb';
 import endPointObj from '../../endPointUrl';
+import Pagination from 'react-js-pagination';
 
 var numeral = require('numeral');
 
 function recentActivity() {
   const [groups, setGroups] = useState([]);
   const [activity, setActivity] = useState([]);
+  const [pageNumber, setPage] = useState(0);
 
   const getGroups = (email) => {
-    Axios.get(endPointObj.url + 'groups/' + email)
+    Axios.get(endPointObj.url + 'getGroups/' + email, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
       .then((response) => {
         setGroups(response.data);
       })
@@ -25,18 +31,31 @@ function recentActivity() {
       });
   };
 
+  const handlePageChange = (pageNumber) => {
+    console.log(`active page is ${pageNumber}`);
+    setPage(pageNumber);
+  };
+
   const getRecentActivity = (email) => {
-    Axios.get(endPointObj.url + 'Activity/' + email)
+    Axios.get(endPointObj.url + 'Activity/' + email, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
       .then((response) => {
         numeral.reset();
         numeral.defaultFormat('$0,0.00');
 
         numeral.locale(sessionStorage.getItem('currency'));
 
-        response.data.activity.sort((a, b) => {
+        console.log(response.data);
+        response.data.sort((a, b) => {
+          // console.log(a.timestamp, b.timestamp);
+          // console.log(a.timestamp < b.timestamp);
           return a.timestamp < b.timestamp ? 1 : -1;
         });
-        setActivity(response.data.activity);
+        console.log(response.data);
+        setActivity(response.data);
 
         console.log(activity);
       })
@@ -69,14 +88,24 @@ function recentActivity() {
               <ListGroup className="list-recent-activity">
                 {activity.map((act) => (
                   <ListGroup.Item key={act.activity} className="links-dashboard-groups">
-                    {act.activity == 'inivite' ? (
+                    {act.activityType === 'invited' && (
                       <p>
-                        {act.invitedby} invited {act.invited} to group {act.gp}
+                        {act.invitedby} invited {act.members} to group {act.groupName}
                       </p>
-                    ) : (
+                    )}
+                    {act.activityType === 'creator' && (
                       <p>
-                        {act.sender} added a bill of {numeral(act.amount).format()} to group{' '}
-                        {act.gp}
+                        {act.createdBy} created group {act.groupName}
+                      </p>
+                    )}
+                    {act.activityType === 'Bill' && (
+                      <p>
+                        {act.createdBy} added Bill of {act.amount} to group {act.groupName}
+                      </p>
+                    )}
+                    {act.activityType === 'acceptedInvite' && (
+                      <p>
+                        {act.members} accepted invite for {act.groupName}
                       </p>
                     )}
                   </ListGroup.Item>

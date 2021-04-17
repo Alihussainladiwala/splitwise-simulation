@@ -27,76 +27,98 @@ const getBillsFromGroupId = (id) => {
   });
 };
 
+const getGroupNameFromId = (groupId) => {
+  return new Promise((resolve, reject) => {
+    groupModel.find({ _id: groupId }).then((result) => {
+      if (result) {
+        console.log(result[0].groupName);
+        resolve(result[0].groupName);
+      }
+    });
+  });
+};
+
 router.get(
   "/activity/:email",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     console.log("fetch activity");
 
-    userModel.User.findOne({ email: req.params.email }).then((user) => {
+    userModel.User.findOne({ email: req.params.email }).then(async (user) => {
       //console.log(user);
       //find groups to which he has accepted invite
       //console.log(user.group);
       let activity = [];
-      user.group.forEach((group) => {
-        // console.log(group);
-        groupModel.findById(group.groupId).then(async (groupData) => {
-          console.log(groupData);
+      // user.group.forEach(async (group) => {
 
-          let creator = await getUserById(groupData.createdBy);
-          console.log(creator);
+      for (let i = 0; i < user.group.length; i++) {
+        // console.log(group);
+
+        let groupName = await getGroupNameFromId(user.group[i].groupId);
+
+        let groupData = await groupModel.findById(user.group[i].groupId);
+        console.log(groupData);
+
+        let creator = await getUserById(groupData.createdBy);
+        console.log(creator);
+        activity.push({
+          activityType: "creator",
+          createdBy: creator,
+          groupName: groupName,
+          timestamp: groupData.timestamp,
+        });
+
+        console.log(groupData.members);
+        let mappedMembers = groupData.members.map((member) => member.userId);
+
+        let totalMembers = [...mappedMembers, ...groupData.invitedMembers];
+        console.log(totalMembers);
+        for (let i = 0; i < totalMembers.length; i++) {
+          console.log(totalMembers[i]);
+          let invitedMember = await getUserById(totalMembers[i]);
+
           activity.push({
-            activityType: "creator",
-            createdBy: creator,
+            activityType: "invited",
+            members: invitedMember,
+            invitedBy: creator,
+            groupName: groupName,
             timestamp: groupData.timestamp,
           });
+        }
 
-          console.log(groupData.members);
-          let mappedMembers = groupData.members.map((member) => member.userId);
+        for (let i = 0; i < mappedMembers.length; i++) {
+          let AcceptedInviteMember = await getUserById(totalMembers[i]);
 
-          let totalMembers = [...mappedMembers, ...groupData.invitedMembers];
-          console.log(totalMembers);
-          for (let i = 0; i < totalMembers.length; i++) {
-            console.log(totalMembers[i]);
-            let invitedMember = await getUserById(totalMembers[i]);
+          activity.push({
+            activityType: "acceptedInvite",
+            members: AcceptedInviteMember,
+            timestamp: groupData.timestamp,
+            groupName: groupName,
+          });
+        }
 
-            activity.push({
-              activityType: "invited",
-              members: invitedMember,
-              timestamp: groupData.timestamp,
-            });
-          }
+        // get bills
+        let bills = await getBillsFromGroupId(groupData._id);
+        console.log(bills);
 
-          for (let i = 0; i < mappedMembers.length; i++) {
-            let AcceptedInviteMember = await getUserById(totalMembers[i]);
+        for (let i = 0; i < bills.length; i++) {
+          let billCreator = await getUserById(bills[i].createdBy);
 
-            activity.push({
-              activityType: "acceptedInvite",
-              members: AcceptedInviteMember,
-              timestamp: groupData.timestamp,
-            });
-          }
+          activity.push({
+            activityType: "Bill",
+            createdBy: billCreator,
+            amount: bills[i].amount,
+            groupName: groupName,
+            timestamp: bills[i].timestamp,
+          });
+        }
 
-          // get bills
-          let bills = await getBillsFromGroupId(groupData._id);
-          console.log(bills);
+        console.log(activity);
 
-          for (let i = 0; i < bills.length; i++) {
-            let billCreator = await getUserById(bills[i].createdBy);
+        // activity.push({activityType: "invited", invited: })
+      }
 
-            activity.push({
-              activityType: "Bill",
-              createdBy: billCreator,
-              amount: bills[i].amount,
-              timestamp: bills[i].timestamp,
-            });
-          }
-
-          console.log(activity);
-
-          // activity.push({activityType: "invited", invited: })
-        });
-      });
+      res.status(200).json(activity);
 
       //created the gp
 
@@ -104,8 +126,6 @@ router.get(
       //ppl accepted the invite
       //bills
     });
-
-    res.status(200).json({ message: "got activity" });
   }
 );
 

@@ -37,10 +37,6 @@ const UserSchema = new mongoose.Schema({
   },
   group: { type: Array, default: [] },
   groupInvitedTo: [{ type: Schema.Types.ObjectId, ref: "Group", default: [] }],
-  phoneNo: {
-    type: String,
-    default: "",
-  },
 });
 
 const User = mongoose.model("User", UserSchema);

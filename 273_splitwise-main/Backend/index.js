@@ -12,6 +12,7 @@ const billFunctions = require("./helperfunctionBill");
 const activity = require("./helperfunctionActivity");
 const moment = require("moment");
 const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 const fs = require("fs");
 const util = require("util");
 const mongoose = require("mongoose");
@@ -22,6 +23,12 @@ const routerInvites = require("./routes/invites.js");
 const routerBills = require("./routes/bills.js");
 const routerAmounts = require("./routes/amount.js");
 const routerActivity = require("./routes/activity.js");
+const pipeline = util.promisify(require("stream").pipeline);
+const AWS = require("aws-sdk");
+const stream = require("stream");
+const unlinkFile = util.promisify(fs.unlink);
+
+const { uploadFile, getFileStream } = require("./s3");
 
 const User = require("./modules/user");
 
@@ -131,6 +138,28 @@ app.get(
 
 app.listen(3001, () => {
   console.log("server running on 3001");
+});
+
+app.post("/upload/:email", upload.single("file"), async function (req, res) {
+  const file = req.file;
+  console.log(file);
+
+  // apply filter
+  // resize
+
+  const result = await uploadFile(file);
+  await unlinkFile(file.path);
+  console.log(result);
+  const description = req.body.description;
+
+  User.User.update(
+    { email: req.params.email },
+    { photo: result.Location }
+  ).then((result) => {
+    if (result) {
+      res.send({ imagePath: `/images/${result.Key}` });
+    }
+  });
 });
 
 module.exports = app;

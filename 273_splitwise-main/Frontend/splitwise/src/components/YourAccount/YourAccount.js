@@ -8,6 +8,7 @@ import './YourAccount.css';
 import Axios from 'axios';
 import leo from './holder.png';
 import endPointObj from '../../endPointUrl';
+import { useDispatch, useSelector } from 'react-redux';
 
 const queryString = require('query-string');
 
@@ -31,6 +32,8 @@ function YourAccount() {
     sessionStorage.setItem('currency', curr.get(e.target.value));
   };
 
+  const email = useSelector((state) => state.login.username);
+
   const changedPhone = (e) => {
     sessionStorage.setItem('tempPhone', e.target.value);
   };
@@ -39,9 +42,13 @@ function YourAccount() {
     sessionStorage.setItem('tempName', e.target.value);
   };
 
-  const getAccountInfo = (email) => {
+  const getAccountInfo = () => {
     return new Promise((resolve) => {
-      Axios.get(endPointObj.url + 'accountInfo/' + email).then((response) => {
+      Axios.get(endPointObj.url + 'accountInfo/' + email, {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      }).then((response) => {
         resolve(response);
       });
     });
@@ -54,24 +61,34 @@ function YourAccount() {
       let curr = new Map();
       curr.set('', 'USD');
       curr.set('en-gb', 'GBP');
+      sessionStorage.setItem('tempName', result.data[0].name);
+      sessionStorage.setItem('phoneNo', result.data[0].phoneNo);
 
       formState({
-        name: result.data[0].username,
+        name: result.data[0].name,
         email: result.data[0].email,
         phoneNo: result.data[0].phoneNo,
         currency: curr.get(result.data[0].currency),
       });
-      setPic(endPointObj.url + result.data[0].photo);
+      setPic(result.data[0].photo);
     });
 
     function updateAccountInfo(email, name, currency, phoneNo) {
       return new Promise((resolve) => {
-        Axios.post(endPointObj.url + 'updateAccountInfo', {
-          email: email,
-          name: name,
-          currency: currency,
-          phoneNo: phoneNo,
-        }).then((response) => {
+        Axios.post(
+          endPointObj.url + 'updateAccountInfo',
+          {
+            email: email,
+            name: name,
+            currency: currency,
+            phoneNo: phoneNo,
+          },
+          {
+            headers: {
+              Authorization: 'Bearer ' + localStorage.getItem('token'),
+            },
+          }
+        ).then((response) => {
           resolve(response);
           getAccountInfo(email).then((result) => {
             sessionStorage.setItem('currency', result.data[0].currency);
@@ -82,7 +99,7 @@ function YourAccount() {
 
     return () => {
       updateAccountInfo(
-        emailId.email,
+        email,
         sessionStorage.getItem('tempName'),
         sessionStorage.getItem('currency'),
         sessionStorage.getItem('tempPhone')
@@ -91,13 +108,16 @@ function YourAccount() {
   }, []);
 
   function fileChangehandler(event) {
+    console.log(event.target.files[0]);
     setFile(event.target.files[0]);
   }
 
-  function fileUpload(email) {
+  function fileUpload(file) {
     const data = new FormData();
     data.append('name', 'file_name.jpg');
+    console.log(file);
     data.append('file', file);
+    console.log(data.file);
 
     Axios.post(endPointObj.url + 'upload/' + email, data)
       .then((res) => {
@@ -119,7 +139,7 @@ function YourAccount() {
             <Image className="account-img-height" src={pic} rounded />
             <Row className="choose-buttons">
               <input type="file" id="file" accept=".jpg" onChange={(e) => fileChangehandler(e)} />
-              <button onClick={() => fileUpload(form.email)}>upload</button>
+              <button onClick={() => fileUpload(file)}>upload</button>
             </Row>
           </Col>
 

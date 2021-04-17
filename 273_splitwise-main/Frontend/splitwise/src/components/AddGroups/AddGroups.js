@@ -34,7 +34,11 @@ function Groups() {
   };
 
   useEffect(() => {
-    Axios.get(endPointObj.url + 'allUsers')
+    Axios.get(endPointObj.url + 'users', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
       .then((response) => {
         // eslint-disable-next-line no-console
         // setUsers(response.data);
@@ -45,7 +49,7 @@ function Groups() {
           console.log(ele);
 
           data.push({
-            label: ele.username + ' ( ' + ele.email + ' )',
+            label: ele.name + ' ( ' + ele.email + ' )',
             value: ele.email,
           });
           setUsers(data);
@@ -66,11 +70,19 @@ function Groups() {
     } else if (finalMembers.length == 0) {
       setAlert('Please add members');
     } else {
-      Axios.post(endPointObj.url + 'createGroup', {
-        groupName: group,
-        user: emailId,
-        members: finalMembers,
-      })
+      Axios.post(
+        endPointObj.url + 'createGroup',
+        {
+          groupName: group,
+          user: emailId,
+          members: finalMembers,
+        },
+        {
+          headers: {
+            Authorization: 'Bearer ' + localStorage.getItem('token'),
+          },
+        }
+      )
         .then((response) => {
           // eslint-disable-next-line no-console
           console.log(response);
