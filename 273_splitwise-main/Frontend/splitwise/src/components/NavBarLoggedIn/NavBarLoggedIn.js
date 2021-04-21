@@ -39,7 +39,7 @@ function NavBarLoggedIn() {
 
           setUserName(response.data[0].name);
 
-          setPic(endPointObj.url + response.data[0].photo);
+          setPic(response.data[0].photo);
 
           resolve(response);
         }

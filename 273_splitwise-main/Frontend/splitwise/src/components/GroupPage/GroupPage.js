@@ -43,11 +43,16 @@ function GroupPage() {
   const [showExitGroupModal, ExitGroupModal] = useState(false);
   const [exitStatus, setExitStatus] = useState(false);
   const [note, setNote] = useState('');
+  const [showDelete, setShowDelete] = useState(false);
+  const [userId, setUserID] = useState(null);
+  const [billId, setBillID] = useState(null);
+  const [noteId, setNoteID] = useState(null);
 
   const [bills, setBills] = useState([]);
   const [members, setMembers] = useState([]);
   const [id, setId] = useState('');
   const location = useLocation();
+
   const handleClose = () => {
     setShowExit(false);
     setShow(false);
@@ -55,6 +60,14 @@ function GroupPage() {
 
   const email = useSelector((state) => state.login.username);
   const group = useSelector((state) => state.login.groupName);
+  const handleCloseDelete = () => setShowDelete(false);
+
+  const handleShowDelete = (userIdBill, billIdBill, noteIdBill) => {
+    setUserID(userIdBill);
+    setBillID(billIdBill);
+    setNoteID(noteIdBill);
+    setShowDelete(true);
+  };
 
   const handleSaveChanges = () => {
     const parsed = queryString.parse(location.search);
@@ -288,7 +301,7 @@ function GroupPage() {
     setNote(e.target.value);
   };
 
-  const deleteNote = (userId, billId, noteId) => {
+  const deleteNote = () => {
     console.log(id);
     console.log(userId);
     if (id === userId) {
@@ -306,6 +319,7 @@ function GroupPage() {
       ).then(() => {
         fetchBills(group).then((result) => {
           console.log(result);
+          setShowDelete(false);
           setBills([]);
           setBills(result);
         });
@@ -392,6 +406,26 @@ function GroupPage() {
         </Modal>
       )}
 
+      <Modal show={showDelete} onHide={handleCloseDelete}>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete note?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDelete}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              deleteNote();
+            }}
+          >
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <Row className="group-layout-row">
         <VerticalNav groups={groups} />
 
@@ -431,7 +465,7 @@ function GroupPage() {
                                 <Col>
                                   <i
                                     onClick={() => {
-                                      deleteNote(note.userId, bill._id, note._id);
+                                      handleShowDelete(note.userId, bill._id, note._id);
                                     }}
                                     class={
                                       note.userId === id

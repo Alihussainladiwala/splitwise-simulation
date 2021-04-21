@@ -7,6 +7,7 @@ const userModel = require("../modules/user");
 //Passport midlleware
 app.use(passport.initialize());
 const mongoose = require("mongoose");
+var kafka = require("../kafka/client");
 
 //passport config
 require("../config/passport")(passport);
@@ -78,22 +79,18 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     console.log(req.params.email);
-
-    userModel.User.find({ email: req.params.email }).then(async (result) => {
-      console.log(result);
-      console.log(result[0].group);
-      let displayResult = [];
-      for (let i = 0; i < result[0].group.length; i++) {
-        console.log(result[0].group[i].groupId);
-        let groupData = await group.findById(result[0].group[i].groupId);
-        let groupObj = {
-          groupName: groupData.groupName,
-          photo: groupData.groupPhoto,
-        };
-
-        displayResult.push(groupObj);
+    kafka.make_request("getGroups", req.params, function (err, results) {
+      console.log("in result");
+      console.log("results in my trips ", results);
+      if (err) {
+        console.log("Inside err");
+        res.json({
+          status: "error",
+          msg: "System Error, Try Again.",
+        });
+      } else {
+        res.send(results);
       }
-      res.status(200).json(displayResult);
     });
   }
 );

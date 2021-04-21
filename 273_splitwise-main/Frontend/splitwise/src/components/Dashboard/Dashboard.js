@@ -250,7 +250,7 @@ function Dashboard() {
         <Modal.Body>
           <Form>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label data-testid="dashboard">Pay</Form.Label>
+              <Form.Label>Pay</Form.Label>
               <Form.Control as="select" onChange={getAmountforOwe}>
                 <option selected disabled hidden>
                   Choose here
@@ -285,7 +285,7 @@ function Dashboard() {
         <Modal.Body>
           <Form>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label data-testid="dashboard">Pay</Form.Label>
+              <Form.Label>Pay</Form.Label>
               <Form.Control as="select" onChange={getAmountforOwed}>
                 <option selected disabled hidden>
                   Choose here

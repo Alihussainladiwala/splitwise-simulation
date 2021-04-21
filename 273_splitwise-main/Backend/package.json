@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -12,7 +12,6 @@
     "aws-sdk": "^2.884.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
-    "chai": "^4.3.4",
     "chai-http": "^4.3.0",
     "client-sessions": "^0.8.0",
     "connect-flash": "^0.1.1",
@@ -32,5 +31,8 @@
     "passport-local": "^1.0.0",
     "utils": "^0.3.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^8.3.2"
+  }
 }

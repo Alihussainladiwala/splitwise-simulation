@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema({
   },
   photo: {
     type: String,
-    default: "leo.png",
+    default: "https://splitwise-bucket-1.s3.us-east-2.amazonaws.com/leo.png",
   },
   currency: {
     type: String,

@@ -122,7 +122,7 @@ function YourAccount() {
     Axios.post(endPointObj.url + 'upload/' + email, data)
       .then((res) => {
         getAccountInfo(email).then((result) => {
-          setPic(endPointObj.url + result.data[0].photo);
+          setPic(result.data[0].photo);
           setFile('');
         });
       })
