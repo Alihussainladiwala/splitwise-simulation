@@ -64,6 +64,12 @@ function NavBarLoggedIn() {
     });
   };
 
+  const dashboardRedirect = () => {
+    history.push({
+      pathname: '/dashboard',
+    });
+  };
+
   const accountRedirect = () => {
     // eslint-disable-next-line no-undef
     const email = queryString.parse(location.search);
@@ -94,7 +100,7 @@ function NavBarLoggedIn() {
           className="NavBarLoggedIn-DropDown"
         >
           <NavDropdown.Item onClick={accountRedirect}>Your Account</NavDropdown.Item>
-          <NavDropdown.Item href="#action/3.2">Create a group</NavDropdown.Item>
+          <NavDropdown.Item onClick={dashboardRedirect}>Dashboard</NavDropdown.Item>
           <NavDropdown.Item onClick={logOut}>Log out</NavDropdown.Item>
         </NavDropdown>
       </Navbar.Collapse>

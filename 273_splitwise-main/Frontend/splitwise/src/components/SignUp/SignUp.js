@@ -51,13 +51,13 @@ function SignUp() {
   const register = (e) => {
     const form = e.currentTarget;
     if (form.checkValidity() === false) {
+      console.log('not validated');
       e.preventDefault();
       e.stopPropagation();
     }
-
-    setValidated(true);
-
+    console.log(form.checkValidity());
     e.preventDefault();
+    setValidated(true);
 
     if (usernameReg.length !== 0 && passwordReg.length !== 0 && emailReg.length !== 0) {
       Axios.post(endPointObj.url + 'signUp', {
@@ -83,7 +83,7 @@ function SignUp() {
     <div>
       <Card className="bg-light text-black signUp-card">
         <Container>
-          <Form className="signup-div" validated={validated}>
+          <Form className="signup-div" validated={validated} onSubmit={register}>
             <Form.Group controlId="formBasicEmail">
               <Form.Label>Name</Form.Label>
               <Form.Control
@@ -118,7 +118,7 @@ function SignUp() {
                 required
               />
             </Form.Group>
-            <Button onClick={register} variant="primary" type="submit">
+            <Button variant="primary" type="submit">
               Submit
             </Button>
             {alert.length > 0 && (

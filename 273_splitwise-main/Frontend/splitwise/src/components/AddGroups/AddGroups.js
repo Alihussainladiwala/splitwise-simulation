@@ -34,7 +34,7 @@ function Groups() {
   };
 
   useEffect(() => {
-    Axios.get(endPointObj.url + 'users', {
+    Axios.get(endPointObj.url + 'users/' + emailId, {
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('token'),
       },

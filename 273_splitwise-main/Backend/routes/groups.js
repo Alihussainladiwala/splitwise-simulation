@@ -96,10 +96,14 @@ router.get(
 );
 
 router.get(
-  "/users",
+  "/users/:email",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
-    let members = await userModel.User.find({}, { name: 1, email: 1 });
+    let userId = await getUserIdFromEmail(req.params.email);
+    let members = await userModel.User.find(
+      { _id: { $nin: [userId] } },
+      { name: 1, email: 1 }
+    );
     console.log(members);
 
     res.status(200).json(members);

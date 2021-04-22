@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Form, Container, Image } from 'react-bootstrap';
+import { Row, Col, Form, Container, Image, Button } from 'react-bootstrap';
 import './YourAccount.css';
 import Axios from 'axios';
 import leo from './holder.png';
@@ -21,6 +21,7 @@ function YourAccount() {
   });
 
   const [pic, setPic] = useState(endPointObj.url + 'leo.png');
+  const [validated, setValidated] = useState(false);
 
   const [file, setFile] = useState('');
 
@@ -35,7 +36,7 @@ function YourAccount() {
   const email = useSelector((state) => state.login.username);
 
   const changedPhone = (e) => {
-    sessionStorage.setItem('tempPhone', e.target.value);
+    sessionStorage.setItem('phoneNo', e.target.value);
   };
 
   const changedName = (e) => {
@@ -53,6 +54,31 @@ function YourAccount() {
       });
     });
   };
+
+  let updateAccountInfo = (email, name, currency, phoneNo) => {
+    return new Promise((resolve) => {
+      Axios.post(
+        endPointObj.url + 'updateAccountInfo',
+        {
+          email: email,
+          name: name,
+          currency: currency,
+          phoneNo: phoneNo,
+        },
+        {
+          headers: {
+            Authorization: 'Bearer ' + localStorage.getItem('token'),
+          },
+        }
+      ).then((response) => {
+        resolve(response);
+        getAccountInfo(email).then((result) => {
+          sessionStorage.setItem('currency', result.data[0].currency);
+        });
+      });
+    });
+  };
+
   useEffect(() => {
     // eslint-disable-next-line no-restricted-globals
     const emailId = queryString.parse(location.search);
@@ -73,39 +99,35 @@ function YourAccount() {
       setPic(result.data[0].photo);
     });
 
-    function updateAccountInfo(email, name, currency, phoneNo) {
-      return new Promise((resolve) => {
-        Axios.post(
-          endPointObj.url + 'updateAccountInfo',
-          {
-            email: email,
-            name: name,
-            currency: currency,
-            phoneNo: phoneNo,
-          },
-          {
-            headers: {
-              Authorization: 'Bearer ' + localStorage.getItem('token'),
-            },
-          }
-        ).then((response) => {
-          resolve(response);
-          getAccountInfo(email).then((result) => {
-            sessionStorage.setItem('currency', result.data[0].currency);
-          });
-        });
-      });
-    }
-
     return () => {
-      updateAccountInfo(
-        email,
-        sessionStorage.getItem('tempName'),
-        sessionStorage.getItem('currency'),
-        sessionStorage.getItem('tempPhone')
-      );
+      // updateAccountInfo(
+      //   email,
+      //   sessionStorage.getItem('tempName'),
+      //   sessionStorage.getItem('currency'),
+      //   sessionStorage.getItem('phoneNo')
+      // );
     };
   }, []);
+
+  let updateClicked = (e) => {
+    const form = e.currentTarget;
+    if (form.checkValidity() === false) {
+      console.log('not validated');
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    setValidated(true);
+
+    e.preventDefault();
+
+    updateAccountInfo(
+      email,
+      sessionStorage.getItem('tempName'),
+      sessionStorage.getItem('currency'),
+      sessionStorage.getItem('phoneNo')
+    );
+  };
 
   function fileChangehandler(event) {
     console.log(event.target.files[0]);
@@ -132,72 +154,78 @@ function YourAccount() {
   }
 
   return (
-    <Row className="account-row-height">
-      <Col className="account-col-height">
-        <Row>
-          <Col>
-            <Image className="account-img-height" src={pic} rounded />
-            <Row className="choose-buttons">
-              <input type="file" id="file" accept=".jpg" onChange={(e) => fileChangehandler(e)} />
-              <button onClick={() => fileUpload(file)}>upload</button>
-            </Row>
-          </Col>
+    <Form validated={validated} onSubmit={updateClicked}>
+      <Row className="account-row-height">
+        <Col className="account-col-height">
+          <Row>
+            <Col>
+              <Image className="account-img-height" src={pic} rounded />
+              <Row className="choose-buttons">
+                <input type="file" id="file" accept=".jpg" onChange={(e) => fileChangehandler(e)} />
+                <button onClick={() => fileUpload(file)}>upload</button>
+              </Row>
+            </Col>
 
-          <Col className="user-data">
+            <Col className="user-data">
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Your Name</Form.Label>
+                <Form.Control
+                  placeholder="Disabled input"
+                  defaultValue={form.name}
+                  onChange={(e) => changedName(e)}
+                />
+              </Form.Group>
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Your Email Address</Form.Label>
+                <Form.Control
+                  placeholder="Disabled input"
+                  defaultValue={form.email}
+                  onChange={(e) => changedEmail(e)}
+                  type="email"
+                  disabled
+                />
+              </Form.Group>
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Your Phone</Form.Label>
+                <Form.Control
+                  placeholder="Phone No"
+                  defaultValue={form.phoneNo}
+                  onChange={(e) => changedPhone(e)}
+                  type="tel"
+                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{3}"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        </Col>
+        <Col className="account-form">
+          <Container>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label>Your Name</Form.Label>
-              <Form.Control
-                placeholder="Disabled input"
-                defaultValue={form.name}
-                onChange={(e) => changedName(e)}
-              />
+              <Form.Control as="select" onChange={(e) => changedCurrency(e)}>
+                <option value="" selected disabled hidden>
+                  {form.currency}
+                </option>
+                <option>USD</option>
+                <option>GBP</option>
+              </Form.Control>
             </Form.Group>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label>Your Email Address</Form.Label>
-              <Form.Control
-                placeholder="Disabled input"
-                defaultValue={form.email}
-                onChange={(e) => changedEmail(e)}
-                disabled
-              />
+              <Form.Label>Timezone</Form.Label>
+              <Form.Control as="select" disabled>
+                <option>(UTC-08:00) Baja California</option>
+              </Form.Control>
             </Form.Group>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label>Your Phone</Form.Label>
-              <Form.Control
-                placeholder="Disabled input"
-                defaultValue={form.phoneNo}
-                onChange={(e) => changedPhone(e)}
-              />
+              <Form.Label>Language</Form.Label>
+              <Form.Control as="select" disabled>
+                <option>English</option>
+              </Form.Control>
             </Form.Group>
-          </Col>
-        </Row>
-      </Col>
-      <Col className="account-form">
-        <Container>
-          <Form.Group controlId="exampleForm.ControlSelect1">
-            <Form.Control as="select" onChange={(e) => changedCurrency(e)}>
-              <option value="" selected disabled hidden>
-                {form.currency}
-              </option>
-              <option>USD</option>
-              <option>GBP</option>
-            </Form.Control>
-          </Form.Group>
-          <Form.Group controlId="exampleForm.ControlSelect1">
-            <Form.Label>Timezone</Form.Label>
-            <Form.Control as="select" disabled>
-              <option>(UTC-08:00) Baja California</option>
-            </Form.Control>
-          </Form.Group>
-          <Form.Group controlId="exampleForm.ControlSelect1">
-            <Form.Label>Language</Form.Label>
-            <Form.Control as="select" disabled>
-              <option>English</option>
-            </Form.Control>
-          </Form.Group>
-        </Container>
-      </Col>
-    </Row>
+            <Button type="submit">Submit form</Button>
+          </Container>
+        </Col>
+      </Row>
+    </Form>
   );
 }
 

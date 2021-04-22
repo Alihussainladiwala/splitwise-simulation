@@ -14,7 +14,11 @@ const BillSchema = new mongoose.Schema({
   createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   timestamp: { type: Date, default: Date.now },
   groupName: { type: Schema.Types.ObjectId, ref: "Group", required: true },
-  notes: [{ type: Schema.Types.ObjectId, ref: "Note", default: [] }],
+  notes: { type: Array, default: [] },
+  createdByName: {
+    type: String,
+    default: "",
+  },
 });
 
 const Bill = mongoose.model("Bill", BillSchema);

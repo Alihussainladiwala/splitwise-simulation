@@ -18,13 +18,14 @@
   font-weight: 800;
 }
 
-.dashboard-layout-row{
+.dashboard-layout-row {
   width: 100vw;
   height: 90vh;
 }
 
 .links-dashboard-groups {
   color: #999;
+  margin-left: 10px;
 }
 
 .total-balance {

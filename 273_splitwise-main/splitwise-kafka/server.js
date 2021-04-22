@@ -13,6 +13,7 @@ var Gettmsgs = require("./services/Gettmsgs.js");
 var bills = require("./services/bill.js");
 var fetchBills = require("./services/fetchBills.js");
 var getGroups = require("./services/getGroups.js");
+var addNote = require("./services/addComment.js");
 
 function handleTopicRequest(topic_name, fname) {
   //var topic_name = 'root_topic';
@@ -59,5 +60,6 @@ function handleTopicRequest(topic_name, fname) {
 // handleTopicRequest("allmsgs",Allmsgs)
 // handleTopicRequest("gettmsgs",Gettmsgs)
 handleTopicRequest("bills", bills);
-// handleTopicRequest("fetchBills", fetchBills);
+handleTopicRequest("fetchBills", fetchBills);
 handleTopicRequest("getGroups", getGroups);
+handleTopicRequest("addNote", addNote);

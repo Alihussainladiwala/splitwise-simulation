@@ -47,6 +47,7 @@ function GroupPage() {
   const [userId, setUserID] = useState(null);
   const [billId, setBillID] = useState(null);
   const [noteId, setNoteID] = useState(null);
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
 
   const [bills, setBills] = useState([]);
   const [members, setMembers] = useState([]);
@@ -277,10 +278,11 @@ function GroupPage() {
 
   const addNote = (billId, note) => {
     Axios.post(
-      endPointObj.url + 'addNotes/' + billId,
+      endPointObj.url + 'addNotes/',
       {
         note: note,
         email,
+        billId,
       },
       {
         headers: {
@@ -438,7 +440,6 @@ function GroupPage() {
                   <DropdownButton as={ButtonGroup} title="Dropdown" id="bg-nested-dropdown">
                     <Dropdown.Item onClick={handleShow}>Add Bill</Dropdown.Item>
                     <Dropdown.Item onClick={exitGroup}>Exit Group</Dropdown.Item>
-                    <Dropdown.Item onClick={handleClickGpDetails}>Group Detials</Dropdown.Item>
                   </DropdownButton>
                 </Col>
               </Row>
@@ -452,7 +453,8 @@ function GroupPage() {
                   <Card>
                     <Card.Header>
                       <CustomToggle eventKey={JSON.stringify(bills.indexOf(bill))}></CustomToggle>
-                      amt:{numeral(bill.amount).format()}&nbsp;&nbsp;sender:{bill.sender}
+                      {bill.createdByName} added a bill of {numeral(bill.amount).format()} on{' '}
+                      {new Date(bill.timestamp).toLocaleDateString(undefined, options)}
                       &nbsp;&nbsp;
                     </Card.Header>
                     <Accordion.Collapse eventKey={JSON.stringify(bills.indexOf(bill))}>
@@ -461,7 +463,9 @@ function GroupPage() {
                           {bill.notes.map((note) => (
                             <ListGroup.Item>
                               <Row>
-                                <Col sm={11}>{note.note}</Col>
+                                <Col sm={11}>
+                                  {note.username} commented {note.note}
+                                </Col>
                                 <Col>
                                   <i
                                     onClick={() => {
@@ -483,7 +487,7 @@ function GroupPage() {
                               <Col sm={11}>
                                 <Form.Control
                                   type="text"
-                                  placeholder="Normal text"
+                                  placeholder="Add comment"
                                   onChange={(e) => onChangeNote(e)}
                                 />
                               </Col>

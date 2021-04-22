@@ -118,7 +118,6 @@ function VerticalNav(props) {
             {onChangeTriggered == false &&
               props.groups.map((group) => (
                 <Row>
-                  <img src={endPointObj.url + group.photo} className="group-image"></img>
                   <Nav.Link
                     data-testid="Group"
                     key={group.groupName}
