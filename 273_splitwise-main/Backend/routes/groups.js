@@ -32,10 +32,8 @@ router.post(
             } else {
               newGroup.save().then((group) => {
                 // res.status(200).json({ message: "group added successfully" });
-                console.log(group._id);
-                console.log(users);
+
                 const invite = new userModel.Invite({ groupId: group._id });
-                console.log(invite);
 
                 userModel.User.where("_id")
                   .in(users)

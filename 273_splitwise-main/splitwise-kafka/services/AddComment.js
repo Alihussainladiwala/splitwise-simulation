@@ -8,7 +8,6 @@ const note = require("../modules/notes");
 const getIdFromEmail = (email) => {
   return new Promise((resolve, reject) => {
     userModel.User.find({ email }).then((result) => {
-      console.log(result);
       if (result) {
         resolve(result[0]._id);
       }
@@ -18,8 +17,6 @@ const getIdFromEmail = (email) => {
 
 function handle_request(msg, callback) {
   getIdFromEmail(msg.email).then((id) => {
-    console.log(msg, "myMessage");
-    console.log(id, "got the id");
     const newNote = new note({ note: msg.note, userId: id });
     bill
       .update({ _id: msg.billId }, { $push: { notes: newNote } })

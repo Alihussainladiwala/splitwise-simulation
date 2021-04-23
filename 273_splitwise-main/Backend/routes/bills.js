@@ -23,8 +23,6 @@ router.post(
   (req, res) => {
     const { user, billData, amount, group } = req.body;
     kafka.make_request("bills", req.body, function (err, results) {
-      console.log("in result");
-      console.log("results in my trips ", results);
       if (err) {
         console.log("Inside err");
         res.json({
@@ -55,8 +53,6 @@ router.post(
   (req, res) => {
     console.log(req.body.note);
     kafka.make_request("addNote", req.body, function (err, results) {
-      console.log("in result");
-      console.log("results in my trips ", results);
       if (err) {
         console.log("Inside err");
         res.json({
@@ -125,8 +121,6 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     kafka.make_request("fetchBills", req.params, function (err, results) {
-      console.log("in result");
-      console.log("results in my trips ", results);
       if (err) {
         console.log("Inside err");
         res.json({

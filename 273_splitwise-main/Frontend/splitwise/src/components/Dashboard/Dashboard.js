@@ -264,7 +264,7 @@ function Dashboard() {
             </Form.Group>
             <Form.Group controlId="exampleForm.ControlInput1">
               <Form.Label>Amount</Form.Label>
-              <Form.Control type="number" placeholder={amount} disabled />
+              <Form.Control type="number" placeholder={numeral(amount).format()} disabled />
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -299,7 +299,7 @@ function Dashboard() {
             </Form.Group>
             <Form.Group controlId="exampleForm.ControlInput1">
               <Form.Label>Amount</Form.Label>
-              <Form.Control type="number" placeholder={amount} disabled />
+              <Form.Control type="number" placeholder={numeral(amount).format()} disabled />
             </Form.Group>
           </Form>
         </Modal.Body>

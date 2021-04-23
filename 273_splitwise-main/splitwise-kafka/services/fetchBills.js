@@ -17,7 +17,6 @@ const getUsernameFromID = (userId) => {
 
 function handle_request(msg, callback) {
   groupModel.find({ groupName: msg.group }).then((groupData) => {
-    console.log(groupData);
     bill.find({ groupName: groupData[0]._id }).then(async (bills) => {
       // let newBills = bills.map((bill) => {
       //   return bill.notes.map(async (note) => {
@@ -39,7 +38,6 @@ function handle_request(msg, callback) {
           );
         }
       }
-      console.log(bills);
       callback(null, bills);
     });
   });

@@ -221,7 +221,7 @@ function YourAccount() {
                 <option>English</option>
               </Form.Control>
             </Form.Group>
-            <Button type="submit">Submit form</Button>
+            <Button type="submit">update</Button>
           </Container>
         </Col>
       </Row>

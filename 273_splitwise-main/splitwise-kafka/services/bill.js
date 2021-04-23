@@ -5,14 +5,9 @@ const transactions = require("../modules/transactions");
 const groupModel = require("../modules/group");
 
 function handle_request(msg, callback) {
-  console.log(msg.user);
-  console.log(msg.group);
   userModel.User.findOne({ email: msg.user }).then((user) => {
     if (user) {
-      console.log(user);
       groupModel.findOne({ groupName: msg.group }).then((group) => {
-        console.log(group);
-
         const newBill = new bill({
           amount: msg.amount,
           description: msg.billData,
@@ -21,13 +16,9 @@ function handle_request(msg, callback) {
         });
 
         newBill.save().then((bill) => {
-          console.log(bill);
-
           groupModel
             .update({ groupName: msg.group }, { $push: { bills: bill._id } })
-            .then((billM) => {
-              console.log(billM);
-            });
+            .then((billM) => {});
 
           let members = group.members.map((member) => member.userId);
 
