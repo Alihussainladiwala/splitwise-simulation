@@ -38,7 +38,7 @@ const db = require("./config/keys").MongoURI;
 const secret = require("./config/keys").secretOrKey;
 
 mongoose
-  .connect(db, { useNewUrlParser: true })
+  .connect(db, { poolSize: 10, useNewUrlParser: true })
   .then(() => console.log("mongo connected"))
   .catch((err) => console.log(err));
 
@@ -67,11 +67,9 @@ app.post("/signUp", (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
-    console.log("fields are missing");
   } else {
     User.User.findOne({ email: email }).then(async (user) => {
       if (user) {
-        console.log("user already exists");
         res.status(400).json({ message: "email aready exists" });
       } else {
         const newUser = new User.User({
