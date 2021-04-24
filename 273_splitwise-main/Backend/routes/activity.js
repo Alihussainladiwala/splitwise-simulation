@@ -12,7 +12,6 @@ app.use(passport.initialize());
 const getUserById = (id) => {
   return new Promise((resolve, reject) => {
     userModel.User.findById(id).then((user) => {
-      console.log(user);
       resolve(user.name);
     });
   });
@@ -21,7 +20,6 @@ const getUserById = (id) => {
 const getBillsFromGroupId = (id) => {
   return new Promise((resolve, reject) => {
     billModel.find({ groupName: id }).then((bill) => {
-      console.log(bill);
       resolve(bill);
     });
   });
@@ -31,7 +29,6 @@ const getGroupNameFromId = (groupId) => {
   return new Promise((resolve, reject) => {
     groupModel.find({ _id: groupId }).then((result) => {
       if (result) {
-        console.log(result[0].groupName);
         resolve(result[0].groupName);
       }
     });
@@ -52,15 +49,11 @@ router.get(
       // user.group.forEach(async (group) => {
 
       for (let i = 0; i < user.group.length; i++) {
-        // console.log(group);
-
         let groupName = await getGroupNameFromId(user.group[i].groupId);
 
         let groupData = await groupModel.findById(user.group[i].groupId);
-        console.log(groupData);
 
         let creator = await getUserById(groupData.createdBy);
-        console.log(creator);
         activity.push({
           activityType: "creator",
           createdBy: creator,
@@ -68,7 +61,6 @@ router.get(
           timestamp: groupData.timestamp,
         });
 
-        console.log(groupData.members);
         let mappedMembers = groupData.members.map((member) => member.userId);
 
         let totalMembers = [...mappedMembers, ...groupData.invitedMembers];

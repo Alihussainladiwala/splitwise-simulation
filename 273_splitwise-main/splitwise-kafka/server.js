@@ -1,15 +1,6 @@
 var connection = new require("./kafka/Connection");
 //topics files
 
-var Profile = require("./services/Profile.js");
-var Profileget = require("./services/Profileget.js");
-var Mytrips = require("./services/Mytrips.js");
-var Odashboard = require("./services/Odashboard.js");
-var Booking = require("./services/Booking.js");
-var Property = require("./services/Property.js");
-var Messagepost = require("./services/Messagepost.js");
-var Allmsgs = require("./services/Allmsgs.js");
-var Gettmsgs = require("./services/Gettmsgs.js");
 var bills = require("./services/bill.js");
 var fetchBills = require("./services/fetchBills.js");
 var getGroups = require("./services/getGroups.js");
@@ -49,16 +40,6 @@ function handleTopicRequest(topic_name, fname) {
 // Add your TOPICs here
 //first argument is topic name
 //second argument is a function that will handle this topic request
-// handleTopicRequest("login",Login)
-// handleTopicRequest("profilepost",Profile)
-// handleTopicRequest("profileget",Profileget)
-// handleTopicRequest("mytrips",Mytrips)
-// handleTopicRequest("odashboard",Odashboard)
-// handleTopicRequest("booking",Booking)
-// handleTopicRequest("property",Property)
-// handleTopicRequest("messagepost",Messagepost)
-// handleTopicRequest("allmsgs",Allmsgs)
-// handleTopicRequest("gettmsgs",Gettmsgs)
 handleTopicRequest("bills", bills);
 handleTopicRequest("fetchBills", fetchBills);
 handleTopicRequest("getGroups", getGroups);

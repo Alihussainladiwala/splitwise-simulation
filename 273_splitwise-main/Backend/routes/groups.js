@@ -21,7 +21,6 @@ router.post(
       .in(members)
       .select("_id")
       .then((users) => {
-        console.log(users);
         userModel.User.findOne({ email: user }).then((result) => {
           const newGroup = group({ groupName, createdBy: result._id });
 
@@ -40,7 +39,6 @@ router.post(
                   .updateMany(
                     { $push: { groupInvitedTo: group._id } },
                     (err, result) => {
-                      console.log(user);
                       if (!err) {
                         userModel.User.findOneAndUpdate(
                           { email: user },
@@ -76,12 +74,8 @@ router.get(
   "/getGroups/:email",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    console.log(req.params.email);
     kafka.make_request("getGroups", req.params, function (err, results) {
-      console.log("in result");
-      console.log("results in my trips ", results);
       if (err) {
-        console.log("Inside err");
         res.json({
           status: "error",
           msg: "System Error, Try Again.",
@@ -102,7 +96,6 @@ router.get(
       { _id: { $nin: [userId] } },
       { name: 1, email: 1 }
     );
-    console.log(members);
 
     res.status(200).json(members);
   }
@@ -113,7 +106,6 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
     let members = await userModel.User.find({ email: req.params.email });
-    console.log(members);
 
     res.status(200).json(members);
   }
@@ -128,7 +120,6 @@ router.post(
       { email: email },
       { email, name, phoneNo, currency }
     );
-    console.log(update);
     if (update) {
       res.status(200).json({ message: "successfully updated" });
     } else {
@@ -153,7 +144,6 @@ getGroupIdFromName = (groupName) => {
   return new Promise((resolve, reject) => {
     groupModel.find({ groupName }).then((result) => {
       if (result) {
-        console.log(result[0]._id);
         resolve(result[0]._id);
       }
     });
@@ -164,7 +154,6 @@ getUserIdFromEmail = (email) => {
   return new Promise((resolve, reject) => {
     userModel.User.find({ email }).then((result) => {
       if (result) {
-        console.log(result[0]._id);
         resolve(result[0]._id);
       }
     });
@@ -193,8 +182,6 @@ router.post(
           });
       }
     });
-
-    console.log(userId, groupId);
 
     // userModel.User.update()
   }

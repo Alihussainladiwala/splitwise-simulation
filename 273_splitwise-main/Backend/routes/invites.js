@@ -31,14 +31,12 @@ router.get(
 const updateGroup = (groupObj, email) => {
   return new Promise((resolve, reject) => {
     userModel.User.findOne({ email }).then((user) => {
-      console.log(user);
       group
         .findOneAndUpdate(
           { _id: groupObj._id },
           { $pull: { invitedMembers: user._id } }
         )
         .then((result) => {
-          console.log(user._id);
           const userInvite = new inviteModel.UserInvite({ userId: user._id });
           group
             .findOneAndUpdate(
@@ -66,7 +64,6 @@ router.post(
 
     // get objectid for group
     group.findOne({ groupName }).then(async (group) => {
-      console.log(group._id);
       let groupInviteUpdate = await updateGroup(group, email);
 
       if (!groupInviteUpdate) {
@@ -78,7 +75,6 @@ router.post(
         { email },
         { $pull: { groupInvitedTo: group._id } }
       ).then((result) => {
-        console.log(result);
         const invite = new userModel.Invite({ groupId: group._id });
         userModel.User.findOneAndUpdate(
           { email },
