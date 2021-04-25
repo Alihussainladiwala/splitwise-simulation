@@ -105,9 +105,17 @@ router.get(
   "/accountInfo/:email",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
-    let members = await userModel.User.find({ email: req.params.email });
-
-    res.status(200).json(members);
+    kafka.make_request("getProfile", req.params, function (err, results) {
+      if (err) {
+        console.log("Inside err");
+        res.json({
+          status: "error",
+          msg: "System Error, Try Again.",
+        });
+      } else {
+        res.status(200).json(results);
+      }
+    });
   }
 );
 

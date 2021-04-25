@@ -5,6 +5,7 @@ const passport = require("passport");
 const userModel = require("../modules/user");
 const inviteModel = require("../modules/invite");
 const group = require("../modules/group");
+var kafka = require("../kafka/client");
 
 //Passport midlleware
 app.use(passport.initialize());
@@ -16,14 +17,17 @@ router.get(
   "/invites/:email",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    userModel.User.findOne({ email: req.params.email }).then((result) => {
-      group
-        .where("_id")
-        .in(result.groupInvitedTo)
-        .select("groupName")
-        .then((groups) => {
-          res.status(200).json(groups);
+    kafka.make_request("getInvites", req.params, function (err, results) {
+      if (err) {
+        console.log("Inside err");
+        res.json({
+          status: "error",
+          msg: "System Error, Try Again.",
         });
+      } else {
+        res.status(200).json(results);
+      }
+      ks;
     });
   }
 );

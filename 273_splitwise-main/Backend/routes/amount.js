@@ -6,6 +6,7 @@ const groupModel = require("../modules/group");
 const userModel = require("../modules/user");
 const transaction = require("../modules/transactions");
 const mongoose = require("mongoose");
+var kafka = require("../kafka/client");
 //Passport midlleware
 app.use(passport.initialize());
 
@@ -107,40 +108,16 @@ router.get(
   "/amount/:user",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    userModel.User.findOne({ email: req.params.user }).then(async (user) => {
-      let friends = [];
-      friends = await getFriends(user);
-      let transactions = [];
-      for (let i = 0; i < friends.length; i++) {
-        let sent = await getTransactions(user._id, friends[i]);
-        let recieved = await getTransactions(friends[i], user._id);
-        sentAmount = 0;
-        recievedAmount = 0;
-
-        if (sent.length == 0) {
-          sentAmount = 0;
-        } else {
-          sentAmount = sent[0].total;
-        }
-
-        if (recieved.length == 0) {
-          recievedAmount = 0;
-        } else {
-          recievedAmount = recieved[0].total;
-        }
-
-        let friendName = await getNameFromId(friends[i]);
-        let friendEmail = await getEmailFromId(friends[i]);
-
-        let transactionObj = {
-          name: friendName,
-          amount: sentAmount - recievedAmount,
-          email: friendEmail,
-        };
-        transactions.push(transactionObj);
+    kafka.make_request("getAmounts", req.params, function (err, results) {
+      if (err) {
+        console.log("Inside err");
+        res.json({
+          status: "error",
+          msg: "System Error, Try Again.",
+        });
+      } else {
+        res.status(200).json(results);
       }
-
-      res.status(200).json(transactions);
     });
   }
 );
