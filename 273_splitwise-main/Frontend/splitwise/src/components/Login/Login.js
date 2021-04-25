@@ -26,7 +26,6 @@ function Login() {
   const handleClick = (emailId) => {
     history.push({
       pathname: '/dashboard',
-      search: `?email=${emailId}`,
     });
   };
 
@@ -55,11 +54,14 @@ function Login() {
       password,
     })
       .then((response) => {
-        setAlert('');
-        dispatch(setUser(response.data[0].username, true));
-        Cookies.set('name', 'value', { expires: 1 });
-        //getAccountInfo(email)
-        handleClick(email);
+        // setAlert('');
+        // dispatch(setUser(response.data[0].username, true));
+        // Cookies.set('name', 'value', { expires: 1 });
+        // //getAccountInfo(email)
+        // handleClick(email);
+        localStorage.setItem('token', response.data.token.split(' ')[1]);
+        dispatch(setUser(email, true));
+        handleClick();
       })
       // eslint-disable-next-line no-shadow
       .catch((e) => {

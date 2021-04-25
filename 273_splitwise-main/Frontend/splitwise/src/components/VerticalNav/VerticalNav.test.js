@@ -5,24 +5,31 @@ import { render, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import axiosMock from 'axios';
 import VerticalNav from './VerticalNav';
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import allReducers from '../../reducers';
+import { createStore } from 'redux';
 
+const store = createStore(allReducers);
 
+test('should not display groups', async () => {
+  const { getByTestId, getByText } = render(
+    <Provider store={store}>
+      <VerticalNav />
+    </Provider>
+  );
 
-test("should not display groups", async () =>{
+  expect(() => getByTestId('Group')).toThrow('Unable to find an element by: [data-testid="Group"]');
+});
 
-    const {getByTestId, getByText } = render(<VerticalNav/>)
+test('should display groups', () => {
+  const mockGroups = [{ groupName: 'firstGroup' }];
 
-    expect(()=> getByTestId('Group')).toThrow('Unable to find an element by: [data-testid="Group"]')
-})
+  const { getByTestId, getByText } = render(
+    <Provider store={store}>
+      <VerticalNav groups={mockGroups} />
+    </Provider>
+  );
 
-
-
-test("should display groups", () =>{
-
-    const mockGroups = [{groupName: "firstGroup"}]
-
-    const {getByTestId, getByText } = render(<VerticalNav groups= {mockGroups} />)
-
-    expect(getByTestId('Group')).toBe
-})
+  expect(getByTestId('Group')).toBe;
+});

@@ -6,16 +6,19 @@ import Select from 'react-select';
 import { useHistory } from 'react-router-dom';
 import './VerticalNav.css';
 import endPointObj from '../../endPointUrl';
+import { setUser } from '../../actions';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 const queryString = require('query-string');
 
 function VerticalNav(props) {
   const history = useHistory();
-  const parsed = queryString.parse(location.search);
-  let email = parsed;
-  const [emailId, setEmail] = useState([email.email]);
   const [displayList, setDisplayList] = useState([]);
   const [onChangeTriggered, setOnChangeTriggerd] = useState(false);
+  const dispatch = useDispatch();
+  const email = useSelector((state) => state.login.username);
+  const emailId = email;
 
   const handleClick = () => {
     history.push({
@@ -25,9 +28,9 @@ function VerticalNav(props) {
   };
 
   const handleClickGroup = (path) => {
+    dispatch(setUser(email, true, path));
     history.push({
       pathname: '/groupPage',
-      search: '?group=' + path + '&email=' + emailId,
     });
   };
 
@@ -115,7 +118,6 @@ function VerticalNav(props) {
             {onChangeTriggered == false &&
               props.groups.map((group) => (
                 <Row>
-                  <img src={endPointObj.url + group.photo} className="group-image"></img>
                   <Nav.Link
                     data-testid="Group"
                     key={group.groupName}

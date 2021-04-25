@@ -3,11 +3,12 @@
 /* eslint-disable */
 
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Form, Container, Image } from 'react-bootstrap';
+import { Row, Col, Form, Container, Image, Button } from 'react-bootstrap';
 import './YourAccount.css';
 import Axios from 'axios';
 import leo from './holder.png';
 import endPointObj from '../../endPointUrl';
+import { useDispatch, useSelector } from 'react-redux';
 
 const queryString = require('query-string');
 
@@ -20,6 +21,7 @@ function YourAccount() {
   });
 
   const [pic, setPic] = useState(endPointObj.url + 'leo.png');
+  const [validated, setValidated] = useState(false);
 
   const [file, setFile] = useState('');
 
@@ -31,21 +33,52 @@ function YourAccount() {
     sessionStorage.setItem('currency', curr.get(e.target.value));
   };
 
+  const email = useSelector((state) => state.login.username);
+
   const changedPhone = (e) => {
-    sessionStorage.setItem('tempPhone', e.target.value);
+    sessionStorage.setItem('phoneNo', e.target.value);
   };
 
   const changedName = (e) => {
     sessionStorage.setItem('tempName', e.target.value);
   };
 
-  const getAccountInfo = (email) => {
+  const getAccountInfo = () => {
     return new Promise((resolve) => {
-      Axios.get(endPointObj.url + 'accountInfo/' + email).then((response) => {
+      Axios.get(endPointObj.url + 'accountInfo/' + email, {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      }).then((response) => {
         resolve(response);
       });
     });
   };
+
+  let updateAccountInfo = (email, name, currency, phoneNo) => {
+    return new Promise((resolve) => {
+      Axios.post(
+        endPointObj.url + 'updateAccountInfo',
+        {
+          email: email,
+          name: name,
+          currency: currency,
+          phoneNo: phoneNo,
+        },
+        {
+          headers: {
+            Authorization: 'Bearer ' + localStorage.getItem('token'),
+          },
+        }
+      ).then((response) => {
+        resolve(response);
+        getAccountInfo(email).then((result) => {
+          sessionStorage.setItem('currency', result.data[0].currency);
+        });
+      });
+    });
+  };
+
   useEffect(() => {
     // eslint-disable-next-line no-restricted-globals
     const emailId = queryString.parse(location.search);
@@ -54,55 +87,64 @@ function YourAccount() {
       let curr = new Map();
       curr.set('', 'USD');
       curr.set('en-gb', 'GBP');
+      sessionStorage.setItem('tempName', result.data[0].name);
+      sessionStorage.setItem('phoneNo', result.data[0].phoneNo);
 
       formState({
-        name: result.data[0].username,
+        name: result.data[0].name,
         email: result.data[0].email,
         phoneNo: result.data[0].phoneNo,
         currency: curr.get(result.data[0].currency),
       });
-      setPic(endPointObj.url + result.data[0].photo);
+      setPic(result.data[0].photo);
     });
 
-    function updateAccountInfo(email, name, currency, phoneNo) {
-      return new Promise((resolve) => {
-        Axios.post(endPointObj.url + 'updateAccountInfo', {
-          email: email,
-          name: name,
-          currency: currency,
-          phoneNo: phoneNo,
-        }).then((response) => {
-          resolve(response);
-          getAccountInfo(email).then((result) => {
-            sessionStorage.setItem('currency', result.data[0].currency);
-          });
-        });
-      });
-    }
-
     return () => {
-      updateAccountInfo(
-        emailId.email,
-        sessionStorage.getItem('tempName'),
-        sessionStorage.getItem('currency'),
-        sessionStorage.getItem('tempPhone')
-      );
+      // updateAccountInfo(
+      //   email,
+      //   sessionStorage.getItem('tempName'),
+      //   sessionStorage.getItem('currency'),
+      //   sessionStorage.getItem('phoneNo')
+      // );
     };
   }, []);
 
+  let updateClicked = (e) => {
+    const form = e.currentTarget;
+    if (form.checkValidity() === false) {
+      console.log('not validated');
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    setValidated(true);
+
+    e.preventDefault();
+
+    updateAccountInfo(
+      email,
+      sessionStorage.getItem('tempName'),
+      sessionStorage.getItem('currency'),
+      sessionStorage.getItem('phoneNo')
+    );
+  };
+
   function fileChangehandler(event) {
+    console.log(event.target.files[0]);
     setFile(event.target.files[0]);
   }
 
-  function fileUpload(email) {
+  function fileUpload(file) {
     const data = new FormData();
     data.append('name', 'file_name.jpg');
+    console.log(file);
     data.append('file', file);
+    console.log(data.file);
 
     Axios.post(endPointObj.url + 'upload/' + email, data)
       .then((res) => {
         getAccountInfo(email).then((result) => {
-          setPic(endPointObj.url + result.data[0].photo);
+          setPic(result.data[0].photo);
           setFile('');
         });
       })
@@ -112,72 +154,78 @@ function YourAccount() {
   }
 
   return (
-    <Row className="account-row-height">
-      <Col className="account-col-height">
-        <Row>
-          <Col>
-            <Image className="account-img-height" src={pic} rounded />
-            <Row className="choose-buttons">
-              <input type="file" id="file" accept=".jpg" onChange={(e) => fileChangehandler(e)} />
-              <button onClick={() => fileUpload(form.email)}>upload</button>
-            </Row>
-          </Col>
+    <Form validated={validated} onSubmit={updateClicked}>
+      <Row className="account-row-height">
+        <Col className="account-col-height">
+          <Row>
+            <Col>
+              <Image className="account-img-height" src={pic} rounded />
+              <Row className="choose-buttons">
+                <input type="file" id="file" accept=".jpg" onChange={(e) => fileChangehandler(e)} />
+                <button onClick={() => fileUpload(file)}>upload</button>
+              </Row>
+            </Col>
 
-          <Col className="user-data">
+            <Col className="user-data">
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Your Name</Form.Label>
+                <Form.Control
+                  placeholder="Disabled input"
+                  defaultValue={form.name}
+                  onChange={(e) => changedName(e)}
+                />
+              </Form.Group>
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Your Email Address</Form.Label>
+                <Form.Control
+                  placeholder="Disabled input"
+                  defaultValue={form.email}
+                  onChange={(e) => changedEmail(e)}
+                  type="email"
+                  disabled
+                />
+              </Form.Group>
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Your Phone</Form.Label>
+                <Form.Control
+                  placeholder="Phone No"
+                  defaultValue={form.phoneNo}
+                  onChange={(e) => changedPhone(e)}
+                  type="tel"
+                  pattern="[0-9]{3}-[0-9]{3}-[0-9]{3}"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        </Col>
+        <Col className="account-form">
+          <Container>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label>Your Name</Form.Label>
-              <Form.Control
-                placeholder="Disabled input"
-                defaultValue={form.name}
-                onChange={(e) => changedName(e)}
-              />
+              <Form.Control as="select" onChange={(e) => changedCurrency(e)}>
+                <option value="" selected disabled hidden>
+                  {form.currency}
+                </option>
+                <option>USD</option>
+                <option>GBP</option>
+              </Form.Control>
             </Form.Group>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label>Your Email Address</Form.Label>
-              <Form.Control
-                placeholder="Disabled input"
-                defaultValue={form.email}
-                onChange={(e) => changedEmail(e)}
-                disabled
-              />
+              <Form.Label>Timezone</Form.Label>
+              <Form.Control as="select" disabled>
+                <option>(UTC-08:00) Baja California</option>
+              </Form.Control>
             </Form.Group>
             <Form.Group controlId="exampleForm.ControlSelect1">
-              <Form.Label>Your Phone</Form.Label>
-              <Form.Control
-                placeholder="Disabled input"
-                defaultValue={form.phoneNo}
-                onChange={(e) => changedPhone(e)}
-              />
+              <Form.Label>Language</Form.Label>
+              <Form.Control as="select" disabled>
+                <option>English</option>
+              </Form.Control>
             </Form.Group>
-          </Col>
-        </Row>
-      </Col>
-      <Col className="account-form">
-        <Container>
-          <Form.Group controlId="exampleForm.ControlSelect1">
-            <Form.Control as="select" onChange={(e) => changedCurrency(e)}>
-              <option value="" selected disabled hidden>
-                {form.currency}
-              </option>
-              <option>USD</option>
-              <option>GBP</option>
-            </Form.Control>
-          </Form.Group>
-          <Form.Group controlId="exampleForm.ControlSelect1">
-            <Form.Label>Timezone</Form.Label>
-            <Form.Control as="select" disabled>
-              <option>(UTC-08:00) Baja California</option>
-            </Form.Control>
-          </Form.Group>
-          <Form.Group controlId="exampleForm.ControlSelect1">
-            <Form.Label>Language</Form.Label>
-            <Form.Control as="select" disabled>
-              <option>English</option>
-            </Form.Control>
-          </Form.Group>
-        </Container>
-      </Col>
-    </Row>
+            <Button type="submit">update</Button>
+          </Container>
+        </Col>
+      </Row>
+    </Form>
   );
 }
 

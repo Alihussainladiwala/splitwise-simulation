@@ -20,22 +20,26 @@ Axios.defaults.withCredentials = true;
 function NavBarLoggedIn() {
   const [pic, setPic] = useState(endPointObj.url + 'leo.png');
   const [username_session, setUserName] = useState('');
-  // const username = useSelector((state) => state.login.username);
+  const email = useSelector((state) => state.login.username);
 
   const dispatch = useDispatch();
   const history = useHistory();
 
-  const getAccountInfo = (email) => {
+  const getAccountInfo = () => {
     return new Promise((resolve) => {
-      Axios.get(endPointObj.url + 'accountInfo/' + email).then((response) => {
+      Axios.get(endPointObj.url + 'accountInfo/' + email, {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      }).then((response) => {
         // formState(response.data[0].email);
         if (response !== undefined && response.data[0] != undefined) {
           sessionStorage.setItem('currency', response.data[0].currency);
-          sessionStorage.setItem('username', response.data[0].username);
+          // sessionStorage.setItem('username', response.data[0].name);
 
-          setUserName(sessionStorage.getItem('username'));
+          setUserName(response.data[0].name);
 
-          setPic(endPointObj.url + response.data[0].photo);
+          setPic(response.data[0].photo);
 
           resolve(response);
         }
@@ -60,6 +64,12 @@ function NavBarLoggedIn() {
     });
   };
 
+  const dashboardRedirect = () => {
+    history.push({
+      pathname: '/dashboard',
+    });
+  };
+
   const accountRedirect = () => {
     // eslint-disable-next-line no-undef
     const email = queryString.parse(location.search);
@@ -68,21 +78,16 @@ function NavBarLoggedIn() {
 
   const logOut = (e) => {
     e.preventDefault();
-    Axios.get(endPointObj.url + 'logout')
-      .then((response) => {
-        dispatch(setUser('Unknown', false));
-        handleClick();
-        Cookies.remove('name');
-      })
-      // eslint-disable-next-line no-shadow
-      .catch((e) => {
-        console.log(e);
-      });
+
+    dispatch(setUser('Unknown', false, null));
+    sessionStorage.clear();
+    localStorage.clear();
+    handleClick();
+    Cookies.remove('name');
   };
 
   return (
     <Navbar className="nav-bar" expand="lg">
-      {!Cookies.get('name') && <Redirect to="/login" />}
       <Navbar.Brand href="#home">SplitWise</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
@@ -95,7 +100,7 @@ function NavBarLoggedIn() {
           className="NavBarLoggedIn-DropDown"
         >
           <NavDropdown.Item onClick={accountRedirect}>Your Account</NavDropdown.Item>
-          <NavDropdown.Item href="#action/3.2">Create a group</NavDropdown.Item>
+          <NavDropdown.Item onClick={dashboardRedirect}>Dashboard</NavDropdown.Item>
           <NavDropdown.Item onClick={logOut}>Log out</NavDropdown.Item>
         </NavDropdown>
       </Navbar.Collapse>

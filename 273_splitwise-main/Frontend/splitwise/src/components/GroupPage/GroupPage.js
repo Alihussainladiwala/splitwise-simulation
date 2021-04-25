@@ -1,7 +1,8 @@
 /* eslint-disable react/jsx-filename-extension */
 /* eslint-disable */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext, callback } from 'react';
 import VerticalNav from '../VerticalNav/VerticalNav';
+import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import {
   Nav,
@@ -16,6 +17,9 @@ import {
   DropdownButton,
   ButtonGroup,
   Dropdown,
+  Accordion,
+  AccordionContext,
+  useAccordionToggle,
 } from 'react-bootstrap';
 import Axios from 'axios';
 import SideBar from '../SideBar/SideBar';
@@ -28,6 +32,7 @@ import endPointObj from '../../endPointUrl';
 
 function GroupPage() {
   const [show, setShow] = useState(false);
+  const [inconText, iconClass] = useState('fas fa-angle-right');
   const history = useHistory();
   const [showExit, setShowExit] = useState(false);
   const [groups, setGroups] = useState([]);
@@ -37,13 +42,32 @@ function GroupPage() {
   const [showBillModal, setShowBillModal] = useState(false);
   const [showExitGroupModal, ExitGroupModal] = useState(false);
   const [exitStatus, setExitStatus] = useState(false);
+  const [note, setNote] = useState('');
+  const [showDelete, setShowDelete] = useState(false);
+  const [userId, setUserID] = useState(null);
+  const [billId, setBillID] = useState(null);
+  const [noteId, setNoteID] = useState(null);
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
 
   const [bills, setBills] = useState([]);
   const [members, setMembers] = useState([]);
+  const [id, setId] = useState('');
   const location = useLocation();
+
   const handleClose = () => {
     setShowExit(false);
     setShow(false);
+  };
+
+  const email = useSelector((state) => state.login.username);
+  const group = useSelector((state) => state.login.groupName);
+  const handleCloseDelete = () => setShowDelete(false);
+
+  const handleShowDelete = (userIdBill, billIdBill, noteIdBill) => {
+    setUserID(userIdBill);
+    setBillID(billIdBill);
+    setNoteID(noteIdBill);
+    setShowDelete(true);
   };
 
   const handleSaveChanges = () => {
@@ -51,13 +75,21 @@ function GroupPage() {
     AddBill(parsed.email, parsed.group);
   };
 
-  const AddBill = (email, group) => {
-    Axios.post(endPointObj.url + 'addBill', {
-      user: email,
-      billData: description,
-      amount: amount,
-      group: group,
-    })
+  const AddBill = () => {
+    Axios.post(
+      endPointObj.url + 'addBill',
+      {
+        user: email,
+        billData: description,
+        amount: amount,
+        group: group,
+      },
+      {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      }
+    )
       .then((response) => {
         // eslint-disable-next-line no-console
         fetchBills(group).then((result) => {
@@ -91,10 +123,25 @@ function GroupPage() {
     setShowExit(true);
   };
 
+  const getUserId = () => {
+    return new Promise((resolve, reject) => {
+      Axios.get(endPointObj.url + 'userId/' + email, {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      }).then((response) => {
+        console.log(response.data.id, 'got user id');
+        resolve(response.data.id);
+      });
+    });
+  };
+
   useEffect(() => {
-    const parsed = queryString.parse(location.search);
-    let group = parsed;
-    Axios.get(endPointObj.url + 'groups/' + group.email)
+    Axios.get(endPointObj.url + 'getGroups/' + email, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
       .then((response) => {
         // eslint-disable-next-line no-console
         setGroups(response.data);
@@ -103,7 +150,7 @@ function GroupPage() {
         console.log(e);
       });
 
-    fetchBills(group.group).then((result) => {
+    fetchBills(group).then((result) => {
       setBills([]);
       if (result != undefined && result != '' && result != null) {
         numeral.locale(sessionStorage.getItem('currency'));
@@ -111,10 +158,15 @@ function GroupPage() {
         setBills(result);
       }
 
+      getUserId().then((id) => {
+        console.log(id, 'got the id');
+        setId(id);
+      });
+
       noOfBills(result.length);
     });
 
-    getGroupMembers(group.email, group.group).then((result) => {
+    getGroupMembers(email, group).then((result) => {
       setMembers([]);
       setMembers(result);
 
@@ -129,9 +181,14 @@ function GroupPage() {
     });
   }, [location]);
 
-  function fetchBills(group) {
+  function fetchBills() {
     return new Promise((resolve, reject) => {
-      Axios.get(endPointObj.url + 'fetchBills/' + group)
+      console.log(group);
+      Axios.get(endPointObj.url + 'fetchBills/' + group, {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
         .then((response) => {
           noOfBills(response.data.length);
           resolve(response.data);
@@ -160,12 +217,16 @@ function GroupPage() {
     });
   };
 
-  function getGroupMembers(email, group) {
+  function getGroupMembers() {
     return new Promise((resolve, reject) => {
-      Axios.get(endPointObj.url + 'amt/' + email + '/' + group)
+      Axios.get(endPointObj.url + 'groupAmount/' + email + '/' + group, {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      })
         .then((response) => {
           // eslint-disable-next-line no-console
-          response.data = response.data.filter((data) => data.amt != 0);
+          response.data = response.data.filter((data) => data.amount != 0);
           resolve(response.data);
         })
         .catch((e) => {
@@ -174,13 +235,17 @@ function GroupPage() {
     });
   }
 
-  function exitGroupCall(email, groupName) {
+  function exitGroupCall() {
     return new Promise((resolve, reject) => {
-      Axios.post(endPointObj.url + 'exitGroup', {
-        status: true,
-        groupName: groupName,
-        email: email,
-      })
+      Axios.post(
+        endPointObj.url + 'exitGroup/' + email + '/' + group,
+        {},
+        {
+          headers: {
+            Authorization: 'Bearer ' + localStorage.getItem('token'),
+          },
+        }
+      )
         .then((response) => {
           // eslint-disable-next-line no-console
           setShowExit(false);
@@ -193,6 +258,76 @@ function GroupPage() {
         });
     });
   }
+
+  function CustomToggle({ children, eventKey }) {
+    const currentEventKey = useContext(AccordionContext);
+
+    const decoratedOnClick = useAccordionToggle(eventKey, () => callback && callback(eventKey));
+
+    const isCurrentEventKey = currentEventKey === eventKey;
+
+    return (
+      <i
+        onClick={decoratedOnClick}
+        class={isCurrentEventKey ? 'fas fa-angle-down' : 'fas fa-angle-right'}
+      >
+        {children}
+      </i>
+    );
+  }
+
+  const addNote = (billId, note) => {
+    Axios.post(
+      endPointObj.url + 'addNotes/',
+      {
+        note: note,
+        email,
+        billId,
+      },
+      {
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      }
+    ).then((response) => {
+      console.log('now fetch bills');
+      fetchBills(group).then((result) => {
+        console.log(result);
+        setBills([]);
+        setBills(result);
+      });
+    });
+  };
+
+  const onChangeNote = (e) => {
+    setNote(e.target.value);
+  };
+
+  const deleteNote = () => {
+    console.log(id);
+    console.log(userId);
+    if (id === userId) {
+      console.log(id, 'attempting to delete note');
+      Axios.post(
+        endPointObj.url + 'deleteNote/' + billId,
+        {
+          noteId,
+        },
+        {
+          headers: {
+            Authorization: 'Bearer ' + localStorage.getItem('token'),
+          },
+        }
+      ).then(() => {
+        fetchBills(group).then((result) => {
+          console.log(result);
+          setShowDelete(false);
+          setBills([]);
+          setBills(result);
+        });
+      });
+    }
+  };
 
   return (
     <div>
@@ -273,6 +408,26 @@ function GroupPage() {
         </Modal>
       )}
 
+      <Modal show={showDelete} onHide={handleCloseDelete}>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete note?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDelete}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              deleteNote();
+            }}
+          >
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <Row className="group-layout-row">
         <VerticalNav groups={groups} />
 
@@ -285,7 +440,6 @@ function GroupPage() {
                   <DropdownButton as={ButtonGroup} title="Dropdown" id="bg-nested-dropdown">
                     <Dropdown.Item onClick={handleShow}>Add Bill</Dropdown.Item>
                     <Dropdown.Item onClick={exitGroup}>Exit Group</Dropdown.Item>
-                    <Dropdown.Item onClick={handleClickGpDetails}>Group Detials</Dropdown.Item>
                   </DropdownButton>
                 </Col>
               </Row>
@@ -294,14 +448,65 @@ function GroupPage() {
           <Row>
             <Col>
               {billsLength == 0 && <p className="no-bills">No bills!</p>}
-              <ListGroup>
+              <Accordion>
                 {bills.map((bill) => (
-                  <ListGroup.Item key={bill.amount} className="links-dashboard-groups">
-                    amt:{numeral(bill.amount).format()}&nbsp;&nbsp;sender:{bill.sender}
-                    &nbsp;&nbsp;&nbsp;description: {bill.billData}
-                  </ListGroup.Item>
+                  <Card>
+                    <Card.Header>
+                      <CustomToggle eventKey={JSON.stringify(bills.indexOf(bill))}></CustomToggle>
+                      {bill.createdByName} added a bill of {numeral(bill.amount).format()} on{' '}
+                      {new Date(bill.timestamp).toLocaleDateString(undefined, options)}
+                      &nbsp;&nbsp;
+                    </Card.Header>
+                    <Accordion.Collapse eventKey={JSON.stringify(bills.indexOf(bill))}>
+                      <Card.Body>
+                        <ListGroup as="ul">
+                          {bill.notes.map((note) => (
+                            <ListGroup.Item>
+                              <Row>
+                                <Col sm={11}>
+                                  {note.username} commented {note.note}
+                                </Col>
+                                <Col>
+                                  <i
+                                    onClick={() => {
+                                      handleShowDelete(note.userId, bill._id, note._id);
+                                    }}
+                                    class={
+                                      note.userId === id
+                                        ? 'far fa-trash-alt'
+                                        : 'gp-trash-can-disabled far fa-trash-alt'
+                                    }
+                                  ></i>
+                                </Col>
+                              </Row>
+                            </ListGroup.Item>
+                          ))}
+
+                          <ListGroup.Item>
+                            <Row>
+                              <Col sm={11}>
+                                <Form.Control
+                                  type="text"
+                                  placeholder="Add comment"
+                                  onChange={(e) => onChangeNote(e)}
+                                />
+                              </Col>
+                              <Col>
+                                <i
+                                  class="fas fa-plus"
+                                  onClick={() => {
+                                    addNote(bill._id, note);
+                                  }}
+                                ></i>
+                              </Col>
+                            </Row>
+                          </ListGroup.Item>
+                        </ListGroup>
+                      </Card.Body>
+                    </Accordion.Collapse>
+                  </Card>
                 ))}
-              </ListGroup>
+              </Accordion>
             </Col>
           </Row>
         </Col>

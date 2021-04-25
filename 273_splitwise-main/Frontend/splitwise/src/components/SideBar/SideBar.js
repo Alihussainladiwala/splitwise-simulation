@@ -63,12 +63,12 @@ function SideBar(props) {
       {!props.Dashboard &&
         props.members.map((member) =>
           member.amt < 0 ? (
-            <ul key={member.amt} data-testid="Member" className="links-dashboard-groups">
-              you owe {member.email}&nbsp;amt:{props.numeral(member.amt * -1).format()}
+            <ul key={member.amount} data-testid="Member" className="links-dashboard-groups">
+              you owe {member.name}&nbsp;amt:{props.numeral(member.amount * -1).format()}
             </ul>
           ) : (
-            <ul key={member.amt} data-testid="Member" className="links-dashboard-groups">
-              {member.email} owes you &nbsp;amt:{props.numeral(member.amt).format()}
+            <ul key={member.amount} data-testid="Member" className="links-dashboard-groups">
+              {member.name} owes you &nbsp;amt:{props.numeral(member.amount).format()}
             </ul>
           )
         )}

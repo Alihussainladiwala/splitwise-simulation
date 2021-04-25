@@ -15,9 +15,11 @@
   margin-top: 30vh;
 }
 
-.group-layout-row{
-  width:100vw;
+.group-layout-row {
+  width: 100vw;
   height: 100vh;
 }
 
-
+.gp-trash-can-disabled {
+  color: gray;
+}
