@@ -5,6 +5,10 @@ var bills = require("./services/bill.js");
 var fetchBills = require("./services/fetchBills.js");
 var getGroups = require("./services/getGroups.js");
 var addNote = require("./services/addComment.js");
+var getProfile = require("./services/getAccountInfo.js");
+var getActivity = require("./services/getActivity.js");
+var getAmounts = require("./services/getAmounts.js");
+var getInvites = require("./services/getInvites.js");
 
 function handleTopicRequest(topic_name, fname) {
   //var topic_name = 'root_topic';
@@ -44,3 +48,7 @@ handleTopicRequest("bills", bills);
 handleTopicRequest("fetchBills", fetchBills);
 handleTopicRequest("getGroups", getGroups);
 handleTopicRequest("addNote", addNote);
+handleTopicRequest("getProfile", getProfile);
+handleTopicRequest("getActivity", getActivity);
+handleTopicRequest("getAmounts", getAmounts);
+handleTopicRequest("getInvites", getInvites);
