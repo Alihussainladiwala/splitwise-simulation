@@ -18,7 +18,7 @@ Move into the kafka backend folder where the package.json is located. Run comman
 
 `npm start`
 
-## Note: Make sure kafka is up and running. 
+#### Note: Make sure kafka is up and running. 
 
 ### Access the App
  type `http://localhost:3000` in the browser 
