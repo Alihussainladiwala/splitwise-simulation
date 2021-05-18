@@ -25,8 +25,16 @@ import { useLocation, Switch } from 'react-router-dom';
 import 'numeral/locales/en-gb';
 var numeral = require('numeral');
 import endPointObj from '../../endPointUrl';
+import { addBillRequest } from '../../GraphQL/Mutations';
+import { fetchBillsRequest } from '../../GraphQL/Query';
+import { useMutation, useLazyQuery, useQuery } from '@apollo/client';
 
 function GroupPage() {
+  const location = useLocation();
+  const { error, loading, data } = useQuery(fetchBillsRequest, {
+    variables: { group: queryString.parse(location.search).group },
+  });
+  const [addBill, { errorBill }] = useMutation(addBillRequest);
   const [show, setShow] = useState(false);
   const history = useHistory();
   const [showExit, setShowExit] = useState(false);
@@ -40,7 +48,7 @@ function GroupPage() {
 
   const [bills, setBills] = useState([]);
   const [members, setMembers] = useState([]);
-  const location = useLocation();
+
   const handleClose = () => {
     setShowExit(false);
     setShow(false);
@@ -52,35 +60,51 @@ function GroupPage() {
   };
 
   const AddBill = (email, group) => {
-    Axios.post(endPointObj.url + 'addBill', {
-      user: email,
-      billData: description,
-      amount: amount,
-      group: group,
-    })
-      .then((response) => {
-        // eslint-disable-next-line no-console
-        fetchBills(group).then((result) => {
-          console.log(result);
-          setBills([]);
-          setBills(result);
-        });
-        getGroupMembers(email, group).then((result) => {
-          setMembers([]);
-          setMembers(result);
+    addBill({
+      variables: {
+        amount: amount,
+        billData: description,
+        user: email,
+        group: group,
+      },
+    }).then((result) => {
+      console.log(result);
+      if (result.data.signUp && result.data.addBill.message.toLowerCase()) {
+        console.log('successfully added bill');
+      } else {
+        console.log('failed to add bill');
+      }
+    });
 
-          if (result.length == 0) {
-            setExitStatus(true);
-          } else {
-            setExitStatus(false);
-          }
-        });
+    // Axios.post(endPointObj.url + 'addBill', {
+    //   user: email,
+    //   billData: description,
+    //   amount: amount,
+    //   group: group,
+    // })
+    //   .then((response) => {
+    //     // eslint-disable-next-line no-console
+    //     fetchBills(group).then((result) => {
+    //       console.log(result);
+    //       setBills([]);
+    //       setBills(result);
+    //     });
+    //     getGroupMembers(email, group).then((result) => {
+    //       setMembers([]);
+    //       setMembers(result);
 
-        setShow(false);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+    //       if (result.length == 0) {
+    //         setExitStatus(true);
+    //       } else {
+    //         setExitStatus(false);
+    //       }
+    //     });
+
+    //     setShow(false);
+    //   })
+    //   .catch((e) => {
+    //     console.log(e);
+    //   });
   };
 
   const handleShow = () => {
@@ -103,16 +127,18 @@ function GroupPage() {
         console.log(e);
       });
 
-    fetchBills(group.group).then((result) => {
-      setBills([]);
-      if (result != undefined && result != '' && result != null) {
-        numeral.locale(sessionStorage.getItem('currency'));
-        numeral.defaultFormat('$0,0.00');
-        setBills(result);
-      }
+    console.log(data);
 
-      noOfBills(result.length);
-    });
+    // fetchBills(group.group).then((result) => {
+    //   setBills([]);
+    //   if (result != undefined && result != '' && result != null) {
+    //     numeral.locale(sessionStorage.getItem('currency'));
+    //     numeral.defaultFormat('$0,0.00');
+    //     setBills(result);
+    //   }
+
+    //   noOfBills(result.length);
+    // });
 
     getGroupMembers(group.email, group.group).then((result) => {
       setMembers([]);
@@ -127,7 +153,7 @@ function GroupPage() {
         setExitStatus(false);
       }
     });
-  }, [location]);
+  }, [location, data]);
 
   function fetchBills(group) {
     return new Promise((resolve, reject) => {

@@ -1,10 +1,12 @@
 const mysql = require("mysql");
 
 const db = mysql.createConnection({
+  connectionLimit: 10,
+  host: "database-lab3.cyg52rlfwtsh.us-east-2.rds.amazonaws.com",
   user: "admin",
-  host: "splitwise.cyg52rlfwtsh.us-east-2.rds.amazonaws.com",
-  password: "password",
-  database: "splitwise",
+  password: "password123",
+  ssl: true,
+  database: "lab3",
 });
 
 async function fetchActivityFromUsersGroups(user) {

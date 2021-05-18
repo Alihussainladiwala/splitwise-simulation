@@ -1,6 +1,6 @@
-/* eslint-disable prefer-template */
 /* eslint-disable react/jsx-filename-extension */
-import React, { useState } from 'react';
+/* eslint-disable */
+import React, { useState, useEffect } from 'react';
 import { Form, Button, Container, Card, Alert } from 'react-bootstrap';
 import './SignUp.css';
 import Axios from 'axios';
@@ -9,8 +9,14 @@ import { useDispatch } from 'react-redux';
 import Cookies from 'js-cookie';
 import { setUser } from '../../actions';
 import endPointObj from '../../endPointUrl';
+import {SignUpRequest} from '../../GraphQL/Mutations'
+import {loginQuery}  from '../../GraphQL/Query'
+import { useMutation, useLazyQuery } from "@apollo/client";
+
 
 function SignUp() {
+  const [signUp, { error }] = useMutation(SignUpRequest);
+  const [login, { loading, data }] = useLazyQuery(loginQuery);
   const [usernameReg, setUsernameReg] = useState('');
   const [passwordReg, setPasswordReg] = useState('');
   const [validated, setValidated] = useState(false);
@@ -29,52 +35,102 @@ function SignUp() {
     });
   };
 
-  // eslint-disable-next-line no-shadow
-  const logIn = (emailReg, passwordReg) => {
-    Axios.post(endPointObj.url + 'login', {
-      email: emailReg,
-      password: passwordReg,
-    })
-      .then((response) => {
-        handleClick(emailReg);
-        dispatch(setUser(response.data[0].username, true));
-      })
-      .catch((e) => {
-        if (e.response && e.response.data) {
-          console.log(e.response.data.message); // some reason error message
-          // setAlert(e.response.data.message);
-        }
-      });
+  // // eslint-disable-next-line no-shadow
+  // const logIn = (emailReg, passwordReg) => {
+  //   Axios.post(endPointObj.url + 'login', {
+  //     email: emailReg,
+  //     password: passwordReg,
+  //   })
+  //     .then((response) => {
+  //       handleClick(emailReg);
+  //       dispatch(setUser(response.data[0].username, true));
+  //     })
+  //     .catch((e) => {
+  //       if (e.response && e.response.data) {
+  //         console.log(e.response.data.message); // some reason error message
+  //         // setAlert(e.response.data.message);
+  //       }
+  //     });
+  // };
+
+
+
+
+  // const register = (e) => {
+  //   const form = e.currentTarget;
+  //   if (form.checkValidity() === false) {
+  //     e.preventDefault();
+  //     e.stopPropagation();
+  //   }
+
+  //   setValidated(true);
+
+  //   e.preventDefault();
+
+  //   if (usernameReg.length !== 0 && passwordReg.length !== 0 && emailReg.length !== 0) {
+  //     Axios.post(endPointObj.url + 'signUp', {
+  //       username: usernameReg,
+  //       password: passwordReg,
+  //       email: emailReg,
+  //     })
+  //       .then(() => {
+  //         Cookies.set('name', 'value', { expires: 1 });
+  //         logIn(emailReg, passwordReg);
+  //         setAlert('');
+  //       })
+  //       .catch((err) => {
+  //         console.log('error');
+  //         if (err.response && err.response.data) {
+  //           setAlert(err.response.data.message);
+  //         }
+  //       });
+  //   }
+  // };
+
+  useEffect(() => {
+    if(data && data.login.email){
+      dispatch(setUser(data.login.email, true));
+      handleClick(emailReg);
+
+    }
+  },[data]);
+
+  const loginRequest = (email, password) => {
+    login({ variables: { email: email,   password: password } })   
   };
 
   const register = (e) => {
     const form = e.currentTarget;
-    if (form.checkValidity() === false) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    setValidated(true);
-
     e.preventDefault();
 
-    if (usernameReg.length !== 0 && passwordReg.length !== 0 && emailReg.length !== 0) {
-      Axios.post(endPointObj.url + 'signUp', {
-        username: usernameReg,
-        password: passwordReg,
+    if (form.checkValidity() === false) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+    signUp({
+      variables: {
         email: emailReg,
-      })
-        .then(() => {
-          Cookies.set('name', 'value', { expires: 1 });
-          logIn(emailReg, passwordReg);
-          setAlert('');
-        })
-        .catch((err) => {
-          console.log('error');
-          if (err.response && err.response.data) {
-            setAlert(err.response.data.message);
-          }
-        });
+        password: passwordReg,
+        name: usernameReg,
+      }
+     
+    }).then((result) => {
+      console.log(result);
+      if(result.data.signUp && result.data.signUp.message.toLowerCase() == "user already exists")
+      {
+        setAlert(result.data.signUp.message);
+       
+      }
+      else{
+        Cookies.set('name', 'value', { expires: 1 });
+        loginRequest(emailReg, passwordReg);
+      }
+    
+    })
+
+    if (error) {
+      console.log(error);
     }
   };
 

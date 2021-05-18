@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@apollo/client": "^3.3.18",
     "@fortawesome/free-solid-svg-icons": "^5.15.2",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/user-event": "^12.7.1",
@@ -10,6 +11,7 @@
     "bcrypt": "^5.0.0",
     "bootstrap": "^4.6.0",
     "cors": "^2.8.5",
+    "graphql": "^15.5.0",
     "holderjs": "^2.9.9",
     "js-cookie": "^2.2.1",
     "numeral": "^2.0.6",

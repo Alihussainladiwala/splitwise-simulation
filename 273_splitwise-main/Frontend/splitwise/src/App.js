@@ -18,6 +18,29 @@ import AddGroups from './components/AddGroups/AddGroups';
 import RecentActivity from './components/RecentActivity/RecentActivity';
 import GroupDetails from './components/GroupDetails/GroupDetails';
 import endPointObj from './endPointUrl';
+import {ApplloClient, InMemoryCache, ApolloProvider, HttpLink, from, ApolloClient} from "@apollo/client"
+import {onError} from '@apollo/client/link/error'
+
+const errorLink = onError(({graphqlErrors, networkErrors}) => {
+  if(graphqlErrors)
+  {
+    graphqlErrors.map(({message, location, path}) => {
+      alert(`Graphql error ${message}`)
+    })
+  }else{
+
+  }
+})
+
+
+const link = from([
+  errorLink,
+  new HttpLink({uri: "http://localhost:3001/graphql"})
+])
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: link
+})
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -97,6 +120,7 @@ function App() {
 
   return (
     // eslint-disable-next-line react/jsx-filename-extension
+    <ApolloProvider client={client} >
     <Router>
       <div className="App">
         <Switch>
@@ -112,6 +136,7 @@ function App() {
         </Switch>
       </div>
     </Router>
+    </ApolloProvider>
   );
 }
 

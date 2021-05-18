@@ -1,10 +1,12 @@
 const mysql = require("mysql");
 
 const db = mysql.createConnection({
+  connectionLimit: 10,
+  host: "database-lab3.cyg52rlfwtsh.us-east-2.rds.amazonaws.com",
   user: "admin",
-  host: "splitwise.cyg52rlfwtsh.us-east-2.rds.amazonaws.com",
-  password: "password",
-  database: "splitwise",
+  password: "password123",
+  ssl: true,
+  database: "lab3",
 });
 
 let getGroups = (user) => {
@@ -61,6 +63,7 @@ let createGroupUserGroupsDb = (member, groupName, invite, invitedBy) => {
       (err, result) => {
         if (err == null || err == undefined) {
           resolve(true);
+          console.log(err);
         } else {
           resolve(false);
         }
@@ -78,6 +81,7 @@ let createGroupDb = (groupName, Picture) => {
         if (err == null || err == undefined) {
           resolve(true);
         } else {
+          console.log(err);
           resolve(err);
         }
       }
@@ -86,13 +90,15 @@ let createGroupDb = (groupName, Picture) => {
 };
 
 async function createGroup(groupName, members, user) {
-  let res = await createGroupDb(groupName);
+  let res = await createGroupDb(groupName, ""); //need to check
+  console.log(members);
 
   if (res == true) {
     res = await createGroupUserGroupsDb(user, groupName, -1, user);
     if (res == true) {
       let result = false;
       for (member of members) {
+        console.log(member, "inside loop");
         result = await createGroupUserGroupsDb(member, groupName, 0, user);
 
         if (result) {

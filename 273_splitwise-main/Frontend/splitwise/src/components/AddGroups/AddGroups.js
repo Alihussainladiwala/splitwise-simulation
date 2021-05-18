@@ -8,8 +8,13 @@ const queryString = require('query-string');
 import { Alert } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
 import endPointObj from '../../endPointUrl';
+import { getAllUsers } from '../../GraphQL/Query';
+import { useMutation, useQuery } from '@apollo/client';
+import { createGroupRequest } from '../../GraphQL/Mutations';
 
 function Groups() {
+  const [createGp, { createGroupError }] = useMutation(createGroupRequest);
+  const { error, loading, data } = useQuery(getAllUsers);
   const history = useHistory();
   const parsed = queryString.parse(location.search);
   let email = parsed;
@@ -34,30 +39,42 @@ function Groups() {
   };
 
   useEffect(() => {
-    Axios.get(endPointObj.url + 'allUsers')
-      .then((response) => {
-        // eslint-disable-next-line no-console
-        // setUsers(response.data);
+    //   Axios.get(endPointObj.url + 'allUsers')
+    //     .then((response) => {
+    //       // eslint-disable-next-line no-console
+    //       // setUsers(response.data);
 
-        let data = [];
+    //       let data = [];
 
-        response.data.forEach((ele) => {
-          console.log(ele);
+    //       response.data.forEach((ele) => {
+    //         console.log(ele);
 
-          data.push({
-            label: ele.username + ' ( ' + ele.email + ' )',
-            value: ele.email,
-          });
-          setUsers(data);
+    //         data.push({
+    //           label: ele.username + ' ( ' + ele.email + ' )',
+    //           value: ele.email,
+    //         });
+    //         setUsers(data);
+    //       });
+    //     })
+    //     .catch((e) => {
+    //       console.log(e);
+    //     });
+
+    let result = [];
+    if (data) {
+      console.log(data);
+      data.getAllUsers.forEach((ele) => {
+        result.push({
+          label: ele.username + ' ( ' + ele.email + ' )',
+          value: ele.email,
         });
-      })
-      .catch((e) => {
-        console.log(e);
       });
-  }, []);
+      console.log(result);
+      setUsers(result);
+    }
+  }, [data]);
 
   const onSubmit = (e) => {
-    e.preventDefault();
     let finalMembers = [];
     finalMembers = members.map((member) => member.value);
 
@@ -66,24 +83,49 @@ function Groups() {
     } else if (finalMembers.length == 0) {
       setAlert('Please add members');
     } else {
-      Axios.post(endPointObj.url + 'createGroup', {
-        groupName: group,
-        user: emailId,
-        members: finalMembers,
-      })
-        .then((response) => {
-          // eslint-disable-next-line no-console
-          console.log(response);
-          // setUsers(response.data);
+      e.preventDefault();
+      createGp({
+        variables: {
+          groupName: group,
+          user: emailId[0],
+          members: finalMembers,
+        },
+      }).then((result) => {
+        console.log(result);
+        console.log('successfully created group');
+        if (result.data && result.data.createGroup.message == 'group already exists') {
+          setAlert(result.data.createGroup.message);
+        } else {
           dashboard();
-        })
-        .catch((e) => {
-          if (e.response && e.response.data) {
-            console.log(e.response.data.message); // some reason error message
-            setAlert(e.response.data.message);
-          }
-        });
+        }
+      });
     }
+    // e.preventDefault();
+    // let finalMembers = [];
+    // finalMembers = members.map((member) => member.value);
+    // if (group.length == 0) {
+    //   setAlert('Please provide a group Name');
+    // } else if (finalMembers.length == 0) {
+    //   setAlert('Please add members');
+    // } else {
+    //   Axios.post(endPointObj.url + 'createGroup', {
+    //     groupName: group,
+    //     user: emailId,
+    //     members: finalMembers,
+    //   })
+    //     .then((response) => {
+    //       // eslint-disable-next-line no-console
+    //       console.log(response);
+    //       // setUsers(response.data);
+    //       dashboard();
+    //     })
+    //     .catch((e) => {
+    //       if (e.response && e.response.data) {
+    //         console.log(e.response.data.message); // some reason error message
+    //         setAlert(e.response.data.message);
+    //       }
+    //     });
+    // }
   };
   const onChange = (opt) => {
     if (opt == null || opt == 'undefined') {

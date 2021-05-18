@@ -2,10 +2,12 @@ const mysql = require("mysql");
 const groupFunctions = require("./helperfunctionGroups");
 
 const db = mysql.createConnection({
+  connectionLimit: 10,
+  host: "database-lab3.cyg52rlfwtsh.us-east-2.rds.amazonaws.com",
   user: "admin",
-  host: "splitwise.cyg52rlfwtsh.us-east-2.rds.amazonaws.com",
-  password: "password",
-  database: "splitwise",
+  password: "password123",
+  ssl: true,
+  database: "lab3",
 });
 
 insertIntoBillTable = (amount, billData, type = 0) => {
@@ -74,6 +76,7 @@ async function settleUp(sender, reciever, amount) {
 
 async function insertIntoBill(amount, billData, sender, group) {
   let members = await groupFunctions.getGroupMembers(group);
+  console.log(members, "my members");
   let splitAmount = amount / members.length;
 
   res = await insertIntoBillTable(amount, billData);

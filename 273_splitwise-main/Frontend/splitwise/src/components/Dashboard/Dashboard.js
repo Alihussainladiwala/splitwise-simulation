@@ -25,10 +25,42 @@ import SideBar from '../SideBar/SideBar';
 const queryString = require('query-string');
 import 'numeral/locales/en-gb';
 import endPointObj from '../../endPointUrl';
+import { fetchInvitesRequest, fetchGroupsRequest, getAmountRequest } from '../../GraphQL/Query';
+import { useLocation, Switch } from 'react-router-dom';
+import { useMutation, useQuery } from '@apollo/client';
+import { AcceptRequest } from '../../GraphQL/Mutations';
 
 var numeral = require('numeral');
 
 function Dashboard() {
+  const location = useLocation();
+  const [acceptInvite, { error }] = useMutation(AcceptRequest);
+
+  const queryMultiple = () => {
+    const res1 = useQuery(fetchInvitesRequest, {
+      variables: { email: queryString.parse(location.search).email },
+    });
+
+    const res2 = useQuery(fetchGroupsRequest, {
+      variables: { email: queryString.parse(location.search).email },
+    });
+
+    const res3 = useQuery(getAmountRequest, {
+      variables: { email: queryString.parse(location.search).email },
+    });
+
+    return [res1, res2, res3];
+  };
+
+  const [
+    { loading: loading1, data: dataInvite },
+    { loading: loading2, data: dataGroup },
+    { loading: loading3, data: dataAmount },
+  ] = queryMultiple();
+
+  // const { error, loading, data } = useQuery(fetchInvitesRequest, {
+  //   variables: { email: queryString.parse(location.search).email },
+  // });
   const [show, setShow] = useState(false);
   const [showOwed, setShowOwed] = useState(false);
 
@@ -55,16 +87,16 @@ function Dashboard() {
     console.log('loaded cookie');
   }
 
-  const getGroups = (email) => {
-    Axios.get(endPointObj.url + 'groups/' + email)
-      .then((response) => {
-        // eslint-disable-next-line no-console
-        setGroups(response.data);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
-  };
+  // const getGroups = (email) => {
+  //   Axios.get(endPointObj.url + 'groups/' + email)
+  //     .then((response) => {
+  //       // eslint-disable-next-line no-console
+  //       setGroups(response.data);
+  //     })
+  //     .catch((e) => {
+  //       console.log(e);
+  //     });
+  // };
 
   useEffect(() => {
     // if (Cookies.get('userId')) {
@@ -77,75 +109,109 @@ function Dashboard() {
 
     const parsed = queryString.parse(location.search);
     let email = parsed;
-    getGroups(email.email);
+    // getGroups(email.email);
 
-    getInvites(email.email).then((result) => {
-      setInvites(result);
+    // getInvites(email.email).then((result) => {
+    //   setInvites(result);
+    // });
+
+    if (dataInvite) {
+      console.log(dataInvite);
+      setInvites(dataInvite.getInvites);
+    }
+
+    console.log(dataGroup);
+    if (dataGroup) {
+      console.log(dataGroup);
+      setGroups(dataGroup.getGroups);
+    }
+
+    if (dataAmount) {
+      console.log(dataAmount);
+      fetchAmount(dataAmount.getAmount);
+    }
+
+    // fetchAmount(email.email);
+  }, [dataInvite, dataGroup, dataAmount]);
+
+  function fetchAmount(data) {
+    let result = data.map((val) => {
+      return { email: val.email, amt: val.amt };
+    });
+    console.log(result);
+    // getAmount(email).then((result) => {
+    let youOwe = [];
+    let youOwed = [];
+    if (result == null || result == 'undefined' || result == '') {
+      result = [];
+    }
+    result.map((person) => {
+      if (person.amt > 0) {
+        youOwed.push(person);
+      }
+      if (person.amt < 0) {
+        person.amt = person.amt * -1;
+        youOwe.push(person);
+      }
     });
 
-    fetchAmount(email.email);
-  }, []);
+    let youOweAccum = 0;
+    let youOwedAccum = 0;
+    for (let i = 0; i < youOwe.length; i++) {
+      youOweAccum = youOweAccum + youOwe[i].amt;
+    }
 
-  function fetchAmount(email) {
-    getAmount(email).then((result) => {
-      let youOwe = [];
-      let youOwed = [];
-      if (result == null || result == 'undefined' || result == '') {
-        result = [];
-      }
-      result.map((person) => {
-        if (person.amt > 0) {
-          youOwed.push(person);
-        }
-        if (person.amt < 0) {
-          person.amt = person.amt * -1;
-          youOwe.push(person);
-        }
-      });
-
-      let youOweAccum = 0;
-      let youOwedAccum = 0;
-      for (let i = 0; i < youOwe.length; i++) {
-        youOweAccum = youOweAccum + youOwe[i].amt;
-      }
-
-      for (let i = 0; i < youOwed.length; i++) {
-        youOwedAccum = youOwedAccum + youOwed[i].amt;
-      }
-      setYouOwe(youOwe);
-      setYouAreOwed(youOwed);
-      setYouOweTotal(youOweAccum);
-      setYouOwedTotal(youOwedAccum);
-      setTotalBalance(youOwedAccum - youOweAccum);
-    });
+    for (let i = 0; i < youOwed.length; i++) {
+      youOwedAccum = youOwedAccum + youOwed[i].amt;
+    }
+    setYouOwe(youOwe);
+    setYouAreOwed(youOwed);
+    setYouOweTotal(youOweAccum);
+    setYouOwedTotal(youOwedAccum);
+    setTotalBalance(youOwedAccum - youOweAccum);
+    // });
   }
 
-  const accept = (groupName, email) => {
-    acceptInvite(groupName, email).then((result) => {
-      getInvites(email).then((result) => {
-        setInvites(result);
-        getGroups(email);
-      });
+  const accept = (groupName, email, status) => {
+    // acceptInvite(groupName, email).then((result) => {
+    //   getInvites(email).then((result) => {
+    //     setInvites(result);
+    //     getGroups(email);
+    //   });
+    // });
+
+    acceptInvite({
+      variables: {
+        groupName: groupName,
+        email: email,
+        status: status,
+      },
+    }).then((result) => {
+      console.log(result);
+      if (result.data.acceptInvite) {
+        console.log('accepted invite');
+      } else {
+      }
     });
   };
 
-  function acceptInvite(groupName, email) {
-    return new Promise((resolve, reject) => {
-      Axios.post(endPointObj.url + 'inviteStatus', {
-        status: true,
-        groupName: groupName,
-        email: email,
-      })
-        .then((response) => {
-          // eslint-disable-next-line no-console
-          console.log(response.data);
-          resolve(response.data);
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    });
-  }
+  // function acceptInvite(groupName, email) {
+  //   return new Promise((resolve, reject) => {
+  //     Axios.post(endPointObj.url + 'inviteStatus', {
+  //       status: true,
+  //       groupName: groupName,
+  //       email: email,
+  //     })
+  //       .then((response) => {
+  //         // eslint-disable-next-line no-console
+  //         console.log(response.data);
+  //         resolve(response.data);
+  //       })
+  //       .catch((e) => {
+  //         console.log(e);
+  //       });
+  //   });
+  // }
 
   function getAmountforOwe(e) {
     let amountOwedList = owe.filter((list) => list.email == e.target.value);
@@ -350,7 +416,7 @@ function Dashboard() {
                 &nbsp;
                 <i
                   class="fas fa-check-circle accept"
-                  onClick={() => accept(member.groupName, member.email)}
+                  onClick={() => accept(member.groupName, member.email, 'true')}
                 ></i>
                 &nbsp;
                 <i class="fas fa-times-circle reject"></i>

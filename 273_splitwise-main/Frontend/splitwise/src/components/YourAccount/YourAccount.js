@@ -8,15 +8,23 @@ import './YourAccount.css';
 import Axios from 'axios';
 import leo from './holder.png';
 import endPointObj from '../../endPointUrl';
+import { useMutation, useQuery, useLazyQuery } from '@apollo/client';
+import { getAccountInfo as getAccountInfoRequest } from '../../GraphQL/Query';
+import { updateAccountInfo as updateAccountInfoRequest } from '../../GraphQL/Mutations';
 
 const queryString = require('query-string');
 
 function YourAccount() {
+  const [updateAccount, { errorData }] = useMutation(updateAccountInfoRequest);
   const [form, formState] = useState({
     name: '',
     email: '',
     phoneNo: '',
     currency: '',
+  });
+
+  const { error, loading, data } = useQuery(getAccountInfoRequest, {
+    variables: { email: queryString.parse(location.search).email },
   });
 
   const [pic, setPic] = useState(endPointObj.url + 'leo.png');
@@ -46,49 +54,91 @@ function YourAccount() {
       });
     });
   };
+
+  function updateAccountInfo(email, name, currency, phoneNo) {
+    // return new Promise((resolve) => {
+    //   Axios.post(endPointObj.url + 'updateAccountInfo', {
+    //     email: email,
+    //     name: name,
+    //     currency: currency,
+    //     phoneNo: phoneNo,
+    //   }).then((response) => {
+    //     resolve(response);
+    //     // getAccountInfo(email).then((result) => {
+    //     //   sessionStorage.setItem('currency', result.data[0].currency);
+    //     // });
+    //   });
+    // });
+    updateAccount({
+      variables: {
+        currency: currency,
+        phoneNo: phoneNo,
+        name: name,
+        email: email,
+      },
+    }).then((result) => {
+      console.log(result);
+      if (result.data) {
+        // setAlert(result.data.signUp.message);
+        console.log('updated account info');
+      } else {
+        // Cookies.set('name', 'value', { expires: 1 });
+        // loginRequest(emailReg, passwordReg);
+      }
+    });
+  }
+
   useEffect(() => {
     // eslint-disable-next-line no-restricted-globals
     const emailId = queryString.parse(location.search);
 
-    getAccountInfo(emailId.email).then((result) => {
+    console.log(data);
+
+    if (data && data.getAccountInfo.email) {
       let curr = new Map();
       curr.set('', 'USD');
       curr.set('en-gb', 'GBP');
 
-      formState({
-        name: result.data[0].username,
-        email: result.data[0].email,
-        phoneNo: result.data[0].phoneNo,
-        currency: curr.get(result.data[0].currency),
-      });
-      setPic(endPointObj.url + result.data[0].photo);
-    });
+      sessionStorage.setItem('tempName', data.getAccountInfo.username),
+        sessionStorage.setItem('currency', data.getAccountInfo.currency),
+        sessionStorage.setItem('tempPhone', data.getAccountInfo.phoneNo);
 
-    function updateAccountInfo(email, name, currency, phoneNo) {
-      return new Promise((resolve) => {
-        Axios.post(endPointObj.url + 'updateAccountInfo', {
-          email: email,
-          name: name,
-          currency: currency,
-          phoneNo: phoneNo,
-        }).then((response) => {
-          resolve(response);
-          getAccountInfo(email).then((result) => {
-            sessionStorage.setItem('currency', result.data[0].currency);
-          });
-        });
+      formState({
+        name: data.getAccountInfo.username,
+        email: data.getAccountInfo.email,
+        phoneNo: data.getAccountInfo.phoneNo,
+        currency: curr.get(data.getAccountInfo.currency),
       });
+
+      setPic(endPointObj.url + data.getAccountInfo.photo);
     }
 
+    // getAccountInfo(emailId.email).then((result) => {
+    //   let curr = new Map();
+    //   curr.set('', 'USD');
+    //   curr.set('en-gb', 'GBP');
+
+    //   formState({
+    //     name: result.data[0].username,
+    //     email: result.data[0].email,
+    //     phoneNo: result.data[0].phoneNo,
+    //     currency: curr.get(result.data[0].currency),
+    //   });
+    //   setPic(endPointObj.url + result.data[0].photo);
+    // });
+
     return () => {
-      updateAccountInfo(
-        emailId.email,
-        sessionStorage.getItem('tempName'),
-        sessionStorage.getItem('currency'),
-        sessionStorage.getItem('tempPhone')
-      );
+      console.log('updating....');
+      if (data) {
+        updateAccountInfo(
+          emailId.email,
+          sessionStorage.getItem('tempName'),
+          sessionStorage.getItem('currency'),
+          sessionStorage.getItem('tempPhone')
+        );
+      }
     };
-  }, []);
+  }, [data]);
 
   function fileChangehandler(event) {
     setFile(event.target.files[0]);
